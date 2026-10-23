@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#059669">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="محل ألوان للطباعة و التصميم">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>محل ألوان للطباعة و التصميم</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --primary:#059669; --primary-dark:#047857; --primary-light:#d1fae5;
+    --success:#16a34a; --success-light:#dcfce7;
+    --danger:#dc2626; --danger-light:#fee2e2;
+    --warning:#f59e0b; --warning-light:#fef9c3;
+    --bg:#f8fafc; --card:#fff; --txt:#0f172a; --muted:#64748b;
+    --border:#e2e8f0; --ring:rgba(5,150,105,.2);
+    --radius:18px; --shadow:0 5px 20px rgba(15,23,42,.045);
+    --transition:.2s cubic-bezier(.4,0,.2,1);
+  }
+  [data-theme="dark"]{
+    --bg:#0f172a; --card:#1e293b; --txt:#f1f5f9; --muted:#94a3b8;
+    --border:#334155; --primary-light:#064e3b;
+    --success-light:#052e16; --danger-light:#450a0a; --warning-light:#422006;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+    background:var(--bg); color:var(--txt); min-height:100vh;
+    padding:16px; padding-bottom:max(16px, env(safe-area-inset-bottom));
+    line-height:1.6; transition:background var(--transition), color var(--transition);
+  }
+
+  /* Header */
+  .app-header{
+    max-width:560px; margin:0 auto 20px; display:flex;
+    align-items:center; justify-content:space-between; gap:12px;
+  }
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-logo{
+    width:44px; height:44px; border-radius:12px;
+    background:linear-gradient(135deg, var(--primary), #7c3aed);
+    display:grid; place-items:center; color:#fff; font-size:1.4rem;
+    box-shadow:0 4px 12px var(--ring);
+  }
+  .brand-text h1{font-size:1rem; font-weight:700;}
+  .brand-text p{font-size:.75rem; color:var(--muted);}
+  .icon-btn{
+    width:44px; height:44px; border:none; border-radius:12px;
+    background:var(--card); color:var(--txt); cursor:pointer;
+    display:grid; place-items:center; box-shadow:var(--shadow);
+    font-size:1.2rem; transition:transform var(--transition);
+  }
+  .icon-btn:hover{transform:scale(1.05);}
+
+  /* Card */
+  .card{
+    background:var(--card); border-radius:var(--radius);
+    padding:24px; box-shadow:var(--shadow); max-width:560px;
+    margin:0 auto 16px; border:1px solid var(--border);
+    animation:slideIn .4s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideIn{
+    from{opacity:0; transform:translateY(12px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .card h2{font-size:1.2rem; margin-bottom:6px; display:flex; align-items:center; gap:8px;}
+  .card .subtitle{font-size:.85rem; color:var(--muted); margin-bottom:20px;}
+
+  /* Form */
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:.85rem; font-weight:600; margin-bottom:6px;}
+  .field .hint{font-size:.75rem; color:var(--muted); margin-top:4px;}
+  input,select,textarea{
+    width:100%; padding:12px 14px; border:1.5px solid var(--border);
+    border-radius:10px; font-size:.95rem; background:var(--card);
+    color:var(--txt); font-family:inherit;
+    transition:border var(--transition), box-shadow var(--transition);
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:none; border-color:var(--primary);
+    box-shadow:0 0 0 3px var(--ring);
+  }
+  input.invalid{border-color:var(--danger);}
+  .field-error{color:var(--danger); font-size:.75rem; margin-top:4px; min-height:1em;}
+
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  @media(max-width:420px){ .row{grid-template-columns:1fr;} }
+
+  /* Dropzone */
+  .dropzone{
+    border:2px dashed var(--border); border-radius:12px;
+    padding:28px 16px; text-align:center; cursor:pointer;
+    transition:all var(--transition); background:var(--bg);
+  }
+  .dropzone:hover,.dropzone.dragover{
+    border-color:var(--primary); background:var(--primary-light);
+  }
+  .dropzone.has-file{
+    border-style:solid; border-color:var(--success);
+    background:var(--success-light);
+  }
+  .dropzone-icon{font-size:2rem; margin-bottom:8px;}
+  .dropzone p{font-size:.9rem; margin-bottom:4px;}
+  .dropzone small{color:var(--muted); font-size:.75rem;}
+
+  .file-info{
+    display:none; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px;
+    padding:10px 12px; background:var(--card);
+    border-radius:8px; margin-top:10px; text-align:right;
+  }
+  .file-info.show{display:grid;}
+  .selected-file{position:relative;display:flex;flex-direction:column;gap:8px;min-width:0;padding:8px;background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .selected-file .image-preview{display:block;width:100%;height:120px;object-fit:cover;border-radius:7px;background:var(--bg);}
+  .selected-file .file-icon{width:100%;height:120px;border-radius:7px;background:var(--primary-light);display:grid;place-items:center;font-size:2.4rem;}
+  .selected-file .file-meta{width:100%;padding:0 2px 2px;}
+  .selected-file .file-name{padding-left:24px;}
+  .selected-file .file-remove{position:absolute;top:12px;left:12px;width:28px;height:28px;background:#fff;border-radius:50%;box-shadow:0 1px 5px #0002;}
+  .file-info .file-icon{
+    width:40px; height:40px; border-radius:8px;
+    background:var(--primary-light); display:grid; place-items:center;
+    font-size:1.2rem; flex-shrink:0;
+  }
+  .file-info .file-meta{flex:1; min-width:0;}
+  .file-info .file-name{font-size:.85rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .file-info .file-size{font-size:.75rem; color:var(--muted);}
+  .file-remove{background:none; border:none; color:var(--danger); cursor:pointer; font-size:1.2rem; padding:4px;}
+
+  /* Buttons */
+  .btn{
+    width:100%; padding:14px; border:none; border-radius:10px;
+    background:var(--primary); color:#fff; font-size:.95rem;
+    font-weight:600; cursor:pointer; font-family:inherit;
+    transition:all var(--transition);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn:hover:not(:disabled){background:var(--primary-dark); transform:translateY(-1px);}
+  .btn:disabled{background:#94a3b8; cursor:not-allowed; opacity:.7;}
+  .btn-ghost{background:var(--card); color:var(--txt); border:1.5px solid var(--border);}
+  .btn-ghost:hover:not(:disabled){background:var(--bg);}
+  .btn-success{background:var(--success);}
+  .btn-success:hover:not(:disabled){background:#15803d;}
+
+  .spinner{
+    width:16px; height:16px; border:2px solid #fff;
+    border-top-color:transparent; border-radius:50%;
+    animation:spin .7s linear infinite; display:inline-block;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Toast */
+  .toast-container{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    z-index:9999; display:flex; flex-direction:column; gap:8px;
+    width:calc(100% - 32px); max-width:420px; pointer-events:none;
+  }
+  .toast{
+    padding:12px 16px; border-radius:10px; font-size:.9rem;
+    font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,.15);
+    animation:toastIn .3s ease; pointer-events:auto;
+    display:flex; align-items:center; gap:8px;
+  }
+  .toast.ok{background:var(--success); color:#fff;}
+  .toast.err{background:var(--danger); color:#fff;}
+  .toast.wait{background:var(--warning); color:#fff;}
+  @keyframes toastIn{from{opacity:0; transform:translateY(-12px);} to{opacity:1; transform:translateY(0);}}
+
+  /* Status Box */
+  .status-box{
+    padding:14px 16px; border-radius:10px; font-size:.9rem;
+    display:flex; align-items:center; gap:10px;
+    animation:slideIn .3s ease;
+  }
+  .status-box.ok{background:var(--success-light); color:#166534;}
+  .status-box.err{background:var(--danger-light); color:#991b1b;}
+  .status-box.wait{background:var(--warning-light); color:#854d0e;}
+  .install-invite{padding:14px 16px;margin:0 0 16px;border:1px solid var(--primary-light);border-radius:12px;background:var(--primary-light);}
+  .install-invite strong{display:block;margin-bottom:4px;}
+  .install-invite p{font-size:.82rem;color:var(--muted);margin-bottom:10px;}
+
+  /* Steps */
+  .steps{display:flex; gap:8px; margin-bottom:20px;}
+  .step{flex:1; height:4px; border-radius:2px; background:var(--border); transition:background var(--transition);}
+  .step.active{background:var(--primary);}
+  .step.done{background:var(--success);}
+
+  /* Price */
+  .price-estimate{
+    background:var(--primary-light); border-radius:10px;
+    padding:12px 16px; display:flex; justify-content:space-between;
+    align-items:center; margin-top:12px; font-size:.9rem;
+  }
+  .price-estimate strong{color:var(--primary); font-size:1.1rem;}
+
+  /* Job Status Card */
+  .job-card{
+    background:var(--card); border-radius:12px; padding:16px;
+    border:1px solid var(--border); margin-bottom:12px;
+  }
+  .job-card .job-title{font-weight:700; margin-bottom:8px;}
+  .job-card .job-meta{font-size:.8rem; color:var(--muted); margin-bottom:8px;}
+
+  .hidden{display:none !important;}
+  .text-center{text-align:center;}
+  .loading-dots::after{content:''; animation:dots 1.4s infinite;}
+  @keyframes dots{0%,20%{content:'';} 40%{content:'.';} 60%{content:'..';} 80%,100%{content:'...';}}
+
+  :focus-visible{outline:2px solid var(--primary); outline-offset:2px;}
+  @media(prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important;}}
+
+  /* Mobile-first service layout */
+  body{padding:12px 14px max(20px,env(safe-area-inset-bottom));overflow-x:hidden;}
+  .app-header,.card{max-width:720px;}
+  .app-header{margin-bottom:12px;}
+  .brand-logo{background:var(--primary);box-shadow:none;}
+  .card{padding:clamp(16px,4vw,24px);}
+  .card h2{font-size:clamp(1.1rem,4.5vw,1.3rem);}
+  .card .subtitle{margin-bottom:16px;}
+  .form-section{padding:15px;margin:0 0 14px;border:1px solid var(--border);border-radius:15px;background:var(--bg);}
+  .form-section-title{font-size:.98rem;font-weight:750;margin-bottom:12px;}
+  .field{margin-bottom:13px;}
+  .field:last-child{margin-bottom:0;}
+  input,select,textarea{min-height:48px;border-radius:12px;}
+  textarea{min-height:86px;resize:vertical;}
+  .btn{min-height:50px;border-radius:12px;}
+  .dropzone{padding:23px 14px;border-color:#a7d8c6;background:var(--card);}
+  .dropzone.has-file{background:var(--success-light);}
+  .file-info.show{grid-template-columns:1fr;gap:8px;padding:8px 0;background:transparent;}
+  .selected-file{display:grid;grid-template-columns:58px minmax(0,1fr) 44px;align-items:center;gap:10px;padding:8px;background:var(--card);}
+  .selected-file .image-preview,.selected-file .file-icon{width:58px;height:58px;object-fit:cover;border-radius:9px;font-size:1.5rem;}
+  .selected-file .file-meta{min-width:0;}
+  .selected-file .file-name{padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right;}
+  .selected-file .file-size{font-size:.75rem;color:var(--muted);}
+  .selected-file .file-remove{position:static;width:44px;height:44px;border:1px solid var(--border);border-radius:11px;background:var(--card);box-shadow:none;}
+  .visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
+  .choice-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .choice-button{min-height:48px;padding:9px 10px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--txt);font-family:inherit;font-size:.88rem;font-weight:600;cursor:pointer;}
+  .choice-button[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-light);color:var(--primary-dark);box-shadow:inset 0 0 0 1px var(--primary);}
+  .size-choices{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .row{grid-template-columns:1fr;gap:0;}
+  .copies-control{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:8px;direction:ltr;}
+  .copies-control button{min-height:48px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--primary);font-size:1.35rem;font-weight:700;cursor:pointer;}
+  .copies-control input{text-align:center;font-weight:700;direction:ltr;}
+  .field-hint{display:block;margin-top:7px;color:var(--muted);font-size:.78rem;line-height:1.6;}
+  .price-estimate{margin:0 0 12px;padding:16px;border:1px solid #a7d8c6;border-radius:14px;background:var(--primary-light);font-weight:650;}
+  .price-estimate strong{font-size:1.25rem;color:var(--primary-dark);white-space:nowrap;}
+  .price-details{display:grid;gap:4px;margin:-4px 2px 12px;color:var(--muted);font-size:.82rem;}
+  .price-details strong{color:var(--txt);font-weight:650;}
+  [data-theme="dark"] .price-estimate strong{color:#6ee7b7;}
+  [data-theme="dark"] .job-status.wait{color:#fcd34d;}
+  [data-theme="dark"] .job-status.ok{color:#86efac;}
+  [data-theme="dark"] .job-status.err{color:#fca5a5;}
+  .install-invite{display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;align-items:start;padding:12px;margin-bottom:14px;background:var(--primary-light);border-color:var(--border);}
+  .install-icon{width:42px;height:42px;border-radius:12px;background:var(--card);display:grid;place-items:center;color:var(--primary);}
+  .install-copy{min-width:0;}
+  .install-invite p{margin-bottom:8px;}
+  .install-invite .btn{grid-column:1/-1;}
+  .install-help-details{grid-column:1/-1;font-size:.8rem;color:var(--muted);}
+  .install-help-details summary{min-height:40px;display:flex;align-items:center;cursor:pointer;color:var(--primary-dark);font-weight:600;}
+  .job-list{display:grid;gap:10px;}
+  .job-card{padding:14px;margin:0;background:var(--card);border-radius:15px;box-shadow:none;}
+  .job-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+  .job-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right;}
+  .job-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:.75rem;font-weight:700;white-space:nowrap;}
+  .job-status.wait{background:var(--warning-light);color:#854d0e;}
+  .job-status.ok{background:var(--success-light);color:#166534;}
+  .job-status.err{background:var(--danger-light);color:#991b1b;}
+  .job-meta{line-height:1.8;overflow-wrap:anywhere;}
+  .job-details{margin-top:8px;font-size:.8rem;color:var(--muted);}
+  .job-details summary{min-height:42px;display:flex;align-items:center;color:var(--primary-dark);font-weight:650;cursor:pointer;}
+  .job-details ul{padding:0 18px 0 0;}
+  .empty-state,.loading-state,.error-state{padding:20px;text-align:center;border:1px dashed var(--border);border-radius:14px;color:var(--muted);background:var(--bg);}
+  .status-box{min-height:48px;}
+  @media(min-width:700px){
+    body{padding:20px;}
+    .app-header{margin-bottom:18px;}
+    .row{grid-template-columns:1fr 1fr;gap:14px;}
+    .form-section{padding:18px;}
+  }
+  @media(max-width:359px){
+    body{padding-inline:10px;}
+    .brand-text p{font-size:.7rem;}
+    .card{padding:14px;}
+    .form-section{padding:12px;}
+    .choice-button{font-size:.82rem;padding-inline:6px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toasts" role="status" aria-live="polite"></div>
+
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-logo" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v7H7zM17 11h.01"/></svg></div>
+    <div class="brand-text">
+      <h1>محل ألوان للطباعة و التصميم</h1>
+      <p>اطلب الطباعة والتصميم بسهولة من هاتفك</p>
+    </div>
+  </div>
+  <button class="icon-btn" id="theme-toggle" aria-label="تبديل الوضع الليلي">🌙</button>
+</header>
+
+<!-- ===== Screen 1: Register ===== -->
+<section id="screen-register" class="card">
+  <div class="steps"><div class="step active"></div><div class="step"></div><div class="step"></div></div>
+  <h2>👋 مرحبًا بك</h2>
+  <p class="subtitle">سجّل بياناتك لتبدأ استخدام خدمة الطباعة.</p>
+
+  <div class="field">
+    <label for="reg-name">اسم المستخدم</label>
+    <input id="reg-name" type="text" placeholder="مثال: أحمد محمد" autocomplete="name" maxlength="40">
+    <div class="field-error" id="err-name"></div>
+  </div>
+
+  <div class="field">
+    <label for="reg-phone">رقم الهاتف</label>
+    <input id="reg-phone" type="tel" placeholder="05/06/07xxxxxxxx" autocomplete="tel" inputmode="numeric" maxlength="10">
+    <div class="field-error" id="err-phone"></div>
+    <div class="hint">10 أرقام تبدأ بـ 05 أو 06 أو 07</div>
+  </div>
+
+  <button id="btn-register" class="btn">إرسال طلب التسجيل</button>
+</section>
+
+<!-- ===== Screen 2: Wait approval ===== -->
+<section id="screen-wait" class="card hidden">
+  <div class="steps"><div class="step done"></div><div class="step active"></div><div class="step"></div></div>
+  <h2 id="wait-title">⏳ طلبك قيد المراجعة</h2>
+  <p class="subtitle" id="wait-subtitle">سيتم إعلامك عند موافقة الإدارة تلقائيًا. لا تغلق الصفحة.</p>
+  <div class="status-box wait" id="wait-message"><span class="loading-dots">بانتظار قبول الإدارة</span></div>
+  <button id="btn-refresh" class="btn btn-ghost" style="margin-top:16px">🔄 تحديث الحالة</button>
+</section>
+
+<!-- ===== Screen 3: Submit job ===== -->
+<section id="screen-submit" class="card hidden">
+  <div class="steps" aria-hidden="true"><div class="step done"></div><div class="step done"></div><div class="step active"></div></div>
+  <h2>إرسال طلب طباعة</h2>
+  <p class="subtitle">ارفع ملفاتك، اختر الإعدادات، وسنجهز طلبك.</p>
+
+  <div id="install-invite" class="install-invite hidden">
+    <div class="install-icon" aria-hidden="true"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 18h6M12 6v7m-3-3 3 3 3-3"/></svg></div>
+    <div class="install-copy"><strong>ثبّت تطبيق الطباعة</strong><p id="install-help">تابع طلباتك وافتح الخدمة بسرعة من هاتفك.</p></div>
+    <button id="btn-install" class="btn btn-success hidden">تثبيت التطبيق</button>
+    <details class="install-help-details"><summary>تعليمات التثبيت اليدوي</summary><p>من قائمة المتصفح اختر «إضافة إلى الشاشة الرئيسية».</p></details>
+  </div>
+
+  <section class="form-section" aria-labelledby="files-heading">
+    <h3 class="form-section-title" id="files-heading">الملفات</h3>
+    <div class="field">
+    <div class="dropzone" id="dropzone" role="button" tabindex="0">
+      <div class="dropzone-icon" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg></div>
+      <p><strong>اضغط لاختيار الملفات</strong></p>
+      <small>يمكن اختيار عدة صور وملفات PDF أو Word — حتى 10 ميجابايت لكل ملف</small>
+      <input id="file-input" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden" multiple>
+    </div>
+    <div class="file-info" id="file-info"></div>
+    <div class="field-error" id="err-file"></div>
+    </div>
+  </section>
+
+  <section class="form-section" aria-labelledby="settings-heading">
+    <h3 class="form-section-title" id="settings-heading">إعدادات الطباعة</h3>
+    <div class="field">
+    <label for="opt-color">الألوان</label>
+    <div class="choice-group" role="group" aria-label="اختيار الألوان">
+      <button class="choice-button" type="button" data-choice-group="opt-color" data-value="bw" aria-pressed="true">أبيض وأسود</button>
+      <button class="choice-button" type="button" data-choice-group="opt-color" data-value="color" aria-pressed="false">ملون</button>
+    </div>
+    <select id="opt-color" class="visually-hidden" aria-hidden="true" tabindex="-1">
+      <option value="bw">⚫ أبيض وأسود</option>
+      <option value="color">🎨 ملون</option>
+    </select>
+    </div>
+
+  <div class="row">
+    <div class="field">
+      <label for="opt-size">حجم الورق</label>
+      <div class="choice-group size-choices" role="group" aria-label="حجم الورق">
+        <button class="choice-button" type="button" data-choice-group="opt-size" data-value="A4" aria-pressed="true">A4</button>
+        <button class="choice-button" type="button" data-choice-group="opt-size" data-value="A3" aria-pressed="false">A3</button>
+        <button class="choice-button" type="button" data-choice-group="opt-size" data-value="A5" aria-pressed="false">A5</button>
+      </div>
+      <select id="opt-size" class="visually-hidden" aria-hidden="true" tabindex="-1">
+        <option>A4</option><option>A3</option><option>A5</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="opt-type">نوع الورق</label>
+      <select id="opt-type">
+        <option value="normal">عادي</option>
+        <option value="photo-medium">ورق صور لامع متوسط</option>
+        <option value="photo-good">ورق صور لامع جيد</option>
+        <option value="sticker">ورق صور لاصق</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="opt-copies">عدد النسخ</label>
+    <div class="copies-control">
+      <button type="button" id="copies-minus" aria-label="تقليل عدد النسخ">−</button>
+      <input id="opt-copies" type="number" min="1" max="10000" value="1" inputmode="numeric">
+      <button type="button" id="copies-plus" aria-label="زيادة عدد النسخ">+</button>
+    </div>
+    <small class="field-hint">للصور: كل صورة ورقة واحدة × عدد النسخ. للمستندات: كمية التسعير هي عدد النسخ المدخل.</small>
+  </div>
+
+  <div class="field">
+    <label for="opt-notes">ملاحظات (اختياري)</label>
+    <textarea id="opt-notes" rows="2" placeholder="اكتب أي تعليمات إضافية للطباعة" maxlength="200"></textarea>
+  </div>
+  </section>
+
+  <div class="price-estimate">
+    <span id="price-label">السعر التقديري:</span>
+    <strong id="price-value">جارٍ تحميل التسعيرة…</strong>
+  </div>
+  <div class="price-details" id="price-details" aria-live="polite"></div>
+
+  <button id="btn-submit" class="btn" style="margin-top:4px" disabled>إرسال طلب الطباعة</button>
+
+  <section class="form-section" aria-labelledby="my-jobs-heading" style="margin-top:20px">
+    <h3 class="form-section-title" id="my-jobs-heading">طلباتي</h3>
+    <div id="my-jobs" class="job-list" aria-live="polite"><div class="loading-state">جارٍ تحميل الطلبات…</div></div>
+  </section>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+'use strict';
+
+const supabaseReady = window.printSupabaseReady;
+let cloudClient = null;
+supabaseReady.then(client => { cloudClient = client; }).catch(error => console.error('Supabase init:', error));
+
+/* ==================== Storage Layer ==================== */
+/* البيانات الدائمة في Supabase؛ sessionStorage يحتفظ بهوية الجلسة الحالية فقط. */
+const Store = {
+  get(){ return []; },
+  set(key, val){
+    // Broadcast للتحديث الفوري بين التبويبات
+    try { new BroadcastChannel('print-system').postMessage({ type:'update', key }); } catch(e){}
+  },
+  getUser(){ try{ return JSON.parse(sessionStorage.getItem('currentUser') || 'null'); }catch{ return null; } },
+  setUser(u){
+    if(!u){sessionStorage.removeItem('currentUser');return;}
+    sessionStorage.setItem('currentUser',JSON.stringify({id:u.id,name:u.name||'',phone:u.phone||'',status:u.status||'pending',createdAt:u.createdAt||null}));
+  }
+};
+
+/* ==================== Constants ==================== */
+const CONFIG = {
+  MAX_FILE_SIZE: 10 * 1024 * 1024,
+  ALLOWED_EXTENSIONS: ['pdf','doc','docx','jpg','jpeg','png']
+};
+
+/* ==================== Helpers ==================== */
+const $ = id => document.getElementById(id);
+const show = id => $(id).classList.remove('hidden');
+const hide = id => $(id).classList.add('hidden');
+
+function toast(message, type = 'ok', duration = 3500){
+  const container = $('toasts');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = { ok:'✅', err:'❌', wait:'⏳' };
+  el.textContent = `${icons[type] || ''} ${message}`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 300);
+  }, duration);
+}
+window.addEventListener('offline',()=>toast('لا يوجد اتصال بالإنترنت. تحقّق من الشبكة قبل إرسال الطلب.','err',5000));
+window.addEventListener('online',()=>toast('عاد الاتصال بالإنترنت.','ok',2500));
+
+const validators = {
+  name: v => !v ? 'الرجاء إدخال الاسم' : v.length < 2 ? 'الاسم قصير' : v.length > 40 ? 'الاسم طويل' : '',
+  phone: v => !v ? 'الرجاء إدخال الرقم' : !/^0[567]\d{8}$/.test(v) ? 'رقم غير صحيح (10 أرقام تبدأ بـ 05 أو 06 أو 07)' : ''
+};
+
+function setFieldError(inputId, errorId, msg){
+  const input = $(inputId), errEl = $(errorId);
+  if (msg){ input.classList.add('invalid'); errEl.textContent = msg; }
+  else { input.classList.remove('invalid'); errEl.textContent = ''; }
+  return !msg;
+}
+
+/* ==================== Theme ==================== */
+(function initTheme(){
+  document.documentElement.setAttribute('data-theme', 'light');
+  $('theme-toggle').textContent = '🌙';
+})();
+$('theme-toggle').onclick = () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  $('theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
+};
+
+/* ==================== Screen 1: Register ==================== */
+$('btn-register').onclick = async () => {
+  const name = $('reg-name').value.trim();
+  const phone = $('reg-phone').value.trim();
+  const nameErr = validators.name(name);
+  const phoneErr = validators.phone(phone);
+  setFieldError('reg-name', 'err-name', nameErr);
+  setFieldError('reg-phone', 'err-phone', phoneErr);
+  if (nameErr || phoneErr) return;
+
+  const button=$('btn-register');button.disabled=true;
+  let recoveryAuthId='';
+  try {
+    const {db,user:authUser}=await window.printCloud.customerSession();
+    recoveryAuthId=authUser.id;
+    const {data:existing,error:readError}=await db.from('print_users').select('*').maybeSingle();
+    if(readError)throw readError;
+    if(existing){
+      if(existing.name.trim().toLowerCase()!==name.toLowerCase()||existing.phone!==phone)
+        throw new Error('أدخل اسم المستخدم ورقم الهاتف المطابقين للحساب المسجل.');
+      const user={id:existing.id,name:existing.name,phone:existing.phone,status:existing.status,createdAt:Date.parse(existing.created_at)};
+      Store.setUser(user);toast(`مرحبًا مجددًا ${user.name}!`,'ok');routeByStatus(user);return;
+    }
+    const {data:row,error}=await db.from('print_users').insert({id:authUser.id,name,phone,status:'pending'}).select().single();
+    if(error)throw error;
+    const user={id:row.id,name:row.name,phone:row.phone,status:row.status,createdAt:Date.parse(row.created_at)};
+    Store.setUser(user);
+  } catch (error) {
+    console.error('Registration error:', {
+      message: error?.message,
+      code: error?.code,
+      details: error?.details,
+      hint: error?.hint,
+      status: error?.status
+    });
+
+    const errorText=String(error?.message||'');
+    const duplicatePhone=errorText.includes('print_users_phone_unique')||(error?.code==='23505'&&/phone/i.test(errorText));
+    const friendlyError=duplicatePhone
+      ? `هذا الرقم مرتبط بحساب سابق. تواصل مع الإدارة للتحقق اليدوي، وأرسل رمز الجلسة: ${recoveryAuthId||'غير متاح'}. لن تتغير بيانات الحساب أو طلباته قبل اعتماد الإدارة.`
+        : errorText||'خطأ غير معروف';
+    toast('فشل التسجيل: '+friendlyError,'err');
+
+    button.disabled = false;
+    return;
+  }
+
+  toast('تم إرسال طلب التسجيل ✅', 'ok');
+  setTimeout(() => {
+    hide('screen-register');
+    show('screen-wait');
+    startApprovalPolling();
+  }, 500);
+};
+
+$('reg-phone').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+});
+
+/* ==================== Screen 2: Approval wait ==================== */
+let approvalTimer = null;
+let approvalCheckInFlight = false;
+
+async function checkApproval(){
+  if(approvalCheckInFlight)return;
+  const cur = Store.getUser();
+  if (!cur) return;
+  approvalCheckInFlight=true;
+  let fresh;
+  try {
+    const {db}=await window.printCloud.customerSession();
+    const {data,error}=await db.from('print_users').select('*').eq('id',cur.id).maybeSingle();
+    if(error)throw error;
+    fresh=data?{id:data.id,name:data.name,phone:data.phone,status:data.status,createdAt:Date.parse(data.created_at)}:null;
+  } catch(error){ console.error(error);return; }
+  finally { approvalCheckInFlight=false; }
+  const latest=Store.getUser();
+  if(!latest||String(latest.id)!==String(cur.id))return;
+  if (!fresh){
+    clearInterval(approvalTimer);
+    Store.setUser(null);
+    hide('screen-wait');hide('screen-submit');show('screen-register');
+    toast('تم حذف الحساب من لوحة الإدارة. يمكنك تقديم طلب تسجيل جديد.','err');
+    return;
+  }
+
+  if (fresh.status !== latest.status){
+    Store.setUser(fresh);
+    routeByStatus(fresh);
+    const statusMessage={pending:'عاد حسابك إلى انتظار قبول الإدارة',approved:`🎉 تمت الموافقة! أهلًا ${fresh.name}`,rejected:'تم رفض الحساب. تواصل مع الإدارة.'}[fresh.status];
+    toast(statusMessage, fresh.status==='rejected'?'err':'ok',5000);
+  }
+}
+$('btn-refresh').onclick = () => { checkApproval(); toast('تم التحديث', 'wait', 1500); };
+
+function startApprovalPolling(){
+  if (approvalTimer) clearInterval(approvalTimer);
+  approvalTimer = setInterval(checkApproval, 2000);
+}
+
+/* ==================== Screen 3: File upload ==================== */
+let selectedFiles = [];
+const filePreviewUrls = new WeakMap();
+
+const dropzone = $('dropzone');
+const fileInput = $('file-input');
+
+function humanFileSize(bytes){
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+function getFileIcon(ext){
+  const map = { pdf:'📕', doc:'📘', docx:'📘', jpg:'🖼️', jpeg:'🖼️', png:'🖼️' };
+  return map[ext] || '📄';
+}
+function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+function renderSelectedFiles(){
+  const box=$('file-info');
+  box.innerHTML=selectedFiles.map((file,index)=>{
+    const ext=file.name.split('.').pop().toLowerCase();
+    let preview='';
+    if((file.type||'').startsWith('image/')||['jpg','jpeg','png'].includes(ext)){
+      let url=filePreviewUrls.get(file);
+      if(!url){url=URL.createObjectURL(file);filePreviewUrls.set(file,url);}
+      preview=`<img class="image-preview" src="${url}" alt="معاينة ${escapeHtml(file.name)}">`;
+    }else preview=`<div class="file-icon">${getFileIcon(ext)}</div>`;
+    return `<div class="selected-file">${preview}<div class="file-meta"><div class="file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div><div class="file-size">${humanFileSize(file.size)}</div></div><button type="button" class="file-remove" data-remove-file="${index}" aria-label="إزالة ${escapeHtml(file.name)}">✕</button></div>`;
+  }).join('');
+  box.classList.toggle('show',selectedFiles.length>0);
+  dropzone.classList.toggle('has-file',selectedFiles.length>0);
+}
+function handleFiles(files){
+  if (!files || !files.length) return;
+  let added=0;
+  for(const file of files){
+    const ext=file.name.split('.').pop().toLowerCase();
+    if (!CONFIG.ALLOWED_EXTENSIONS.includes(ext)){toast(`نوع الملف غير مدعوم: ${file.name}`,'err');continue;}
+    if (file.size > CONFIG.MAX_FILE_SIZE){toast(`الملف أكبر من 10MB: ${file.name}`,'err');continue;}
+    if(selectedFiles.some(f=>f.name===file.name&&f.size===file.size&&f.lastModified===file.lastModified))continue;
+    selectedFiles.push(file);added++;
+  }
+  if(added)setFieldError('file-input','err-file','');
+  else if(!selectedFiles.length)setFieldError('file-input','err-file','اختر ملفًا مدعومًا لا يتجاوز 10 ميجابايت');
+  renderSelectedFiles();
+  fileInput.value='';
+  updatePrice();
+}
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); }
+});
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+  $('file-info').addEventListener('click',e=>{
+    const remove=e.target.closest('[data-remove-file]');
+    if(!remove)return;
+    const removed=selectedFiles.splice(Number(remove.dataset.removeFile),1)[0];
+    const previewUrl=filePreviewUrls.get(removed);
+    if(previewUrl){URL.revokeObjectURL(previewUrl);filePreviewUrls.delete(removed);}
+    renderSelectedFiles();updatePrice();
+  });
+
+['dragenter','dragover'].forEach(ev => {
+  dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+});
+['dragleave','drop'].forEach(ev => {
+  dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+});
+dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+/* ==================== Price ==================== */
+let pricingLoadError='';
+function updatePrice(){
+  const quote=window.printPriceQuote($('opt-color').value,$('opt-size').value,$('opt-type').value,$('opt-copies').value,selectedFiles);
+  const priceValue=$('price-value'),details=$('price-details'),submit=$('btn-submit');
+  $('price-label').textContent='السعر التقديري (من جدول JavaScript):';
+  if(!quote.available){
+    const messages={
+      'pricing-loading':'جارٍ تحميل جدول الأسعار المعتمد…',
+      'no-files':'اختر ملفًا لحساب السعر.',
+      'size-unpriced':'حجم الورق غير مسعّر حاليًا. اختر حجمًا آخر.',
+      'paper-unpriced':'ورق الصور واللاصق مخصص للصور فقط.',
+      'combination-unpriced':'هذه التركيبة غير متاحة. ورق الصور واللاصق متاح للطباعة الملونة للصور فقط.',
+      'mixed-files':'افصل الصور عن ملفات PDF وWord في طلبات مستقلة لحساب السعر بدقة.'
+    };
+    priceValue.textContent=pricingLoadError||messages[quote.reason]||'تعذر حساب السعر بهذه الخيارات.';
+    details.textContent='';
+    submit.disabled=true;
+    return;
+  }
+  const size=$('opt-size').value,color=$('opt-color').value,type=$('opt-type').value;
+  const sizeName={A3:'A3',A4:'A4',A5:'A5'}[size];
+  const colorName=color==='color'?'ملون':'أبيض وأسود';
+  const paperName=type==='normal'?'ورق عادي':type==='photo-medium'?'صور لامع متوسط':type==='photo-good'?'صور لامع جيد':'ورق صور لاصق';
+  const total=Number.isInteger(quote.totalPrice)?quote.totalPrice:quote.totalPrice.toFixed(2);
+  priceValue.textContent=`${total} دج`;
+  details.innerHTML=`<div>حجم الورق: <strong>${sizeName}</strong></div><div>نوع الطباعة: <strong>${colorName}</strong></div><div>نوع الورق: <strong>${paperName}</strong></div><div>الكمية المحسوبة: <strong>${quote.quantity} ${quote.imageCount?'ورقة مطبوعة':'نسخة'}</strong></div><div>سعر الوحدة: <strong>${quote.unitPrice} دج</strong></div><div>المجموع التقديري: <strong>${total} دج</strong></div>`;
+  submit.disabled=false;
+}
+['opt-color','opt-size','opt-type','opt-copies'].forEach(id => {
+  $(id).addEventListener('change', updatePrice);
+  $(id).addEventListener('input', updatePrice);
+});
+document.querySelectorAll('[data-choice-group]').forEach(button=>{
+  button.addEventListener('click',()=>{
+    const select=$(button.dataset.choiceGroup);
+    select.value=button.dataset.value;
+    document.querySelectorAll(`[data-choice-group="${button.dataset.choiceGroup}"]`).forEach(option=>option.setAttribute('aria-pressed',String(option===button)));
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+});
+function normalizeCopies(){
+  const input=$('opt-copies');
+  const value=Math.max(1,Math.min(10000,Math.floor(Number(input.value)||1)));
+  input.value=value;
+  updatePrice();
+  return value;
+}
+$('copies-minus').addEventListener('click',()=>{$('opt-copies').value=Math.max(1,(Number($('opt-copies').value)||1)-1);normalizeCopies();});
+$('copies-plus').addEventListener('click',()=>{$('opt-copies').value=Math.min(10000,(Number($('opt-copies').value)||1)+1);normalizeCopies();});
+$('opt-copies').addEventListener('change',normalizeCopies);
+updatePrice();
+async function loadApprovedPricing(){
+  pricingLoadError='';
+  updatePrice();
+  try{await window.printCloud.loadPricing();}
+  catch(error){console.error('Pricing load failed:',error);pricingLoadError='تعذر تهيئة جدول الأسعار المحلي في JavaScript.';}
+  updatePrice();
+}
+
+/* ==================== Submit Job ==================== */
+$('btn-submit').onclick = async () => {
+  const cur = Store.getUser();
+  if (!cur) return toast('يجب تسجيل الدخول', 'err');
+  if (!selectedFiles.length) return toast('الرجاء اختيار ملف واحد على الأقل', 'err');
+  if($('opt-type').value!=='normal'&&selectedFiles.some(file=>!String(file.type||'').startsWith('image/')&&!/\.(jpe?g|png|gif|webp)$/i.test(file.name||'')))
+    return toast('ورق الصور مخصص للصور فقط. أزل ملفات PDF أو Word أو اختر الورق العادي.','err');
+  const copies=normalizeCopies();
+  const quote=window.printPriceQuote($('opt-color').value,$('opt-size').value,$('opt-type').value,copies,selectedFiles);
+  if(!quote.available)return toast('لا يمكن إرسال الطلب قبل توفر سعر معتمد لهذه الخيارات.','err');
+  if(quote.imageCount>0&&quote.imageCount<selectedFiles.length)return toast('افصل الصور عن ملفات PDF وWord في طلبات مستقلة.','err');
+
+  const btn = $('btn-submit');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> جارٍ رفع الطلب...';
+
+  try {
+    const {db,user:authUser}=await window.printCloud.customerSession();
+    const {data:profile,error:profileError}=await db.from('print_users').select('id,status').eq('id',cur.id).maybeSingle();
+    if(profileError)throw profileError;
+    if(!profile||profile.status!=='approved')throw new Error('تعذر التحقق من صلاحية الحساب لإرسال الطلب. أعد الدخول أو تواصل مع الإدارة.');
+    const jobId=crypto.randomUUID();
+    const uploadedFiles=[];
+    for(let i=0;i<selectedFiles.length;i++){
+      const file=selectedFiles[i];
+      const cleanName=file.name.replace(/[^\p{L}\p{N}._-]/gu,'_').slice(0,100)||`file-${i}`;
+      const path=`${authUser.id}/${jobId}/${i}-${cleanName}`;
+      const {error:uploadError}=await db.storage.from('print-files').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+      if(uploadError)throw uploadError;
+      uploadedFiles.push({file_name:file.name,object_path:path,mime_type:file.type||'application/octet-stream',byte_size:file.size});
+    }
+    const job = {
+      id: jobId,
+      user_id: cur.id,
+      color: $('opt-color').value,
+      paper_size: $('opt-size').value,
+      paper_type: $('opt-type').value,
+      copies,
+      pricing_quantity: quote.quantity,
+      unit_price: quote.unitPrice,
+      total_price: quote.totalPrice,
+      notes: $('opt-notes').value.trim()
+    };
+    const {data:{user},error:authError}=await db.auth.getUser();
+    if(authError)throw authError;
+    console.log('AUTH UID:',user?.id);
+    console.log('PROFILE ID:',cur.id);
+    console.log('PROFILE STATUS:',profile?.status);
+    console.log('JOB USER ID:',job.user_id);
+    const {error:jobError}=await db.from('print_jobs').insert(job);
+    if(jobError)throw jobError;
+    const {error:fileError}=await db.from('print_job_files').insert(uploadedFiles.map(file=>({job_id:jobId,user_id:authUser.id,...file})));
+    if(fileError)throw fileError;
+    toast('تم إرسال الطلب ✅', 'ok');
+    btn.textContent = 'تم إرسال الطلب';
+
+    // Reset
+    selectedFiles.forEach(file=>{const url=filePreviewUrls.get(file);if(url){URL.revokeObjectURL(url);filePreviewUrls.delete(file);}});
+    selectedFiles = [];
+    fileInput.value = '';
+    renderSelectedFiles();
+    updatePrice();
+    $('opt-notes').value = '';
+    btn.textContent = 'إرسال طلب الطباعة';
+    btn.disabled = true;
+
+    renderMyJobs();
+
+  } catch (err){
+    console.error(err);
+    toast('تعذر إرسال الطلب إلى Supabase: '+(err?.message||'خطأ غير معروف'), 'err');
+    btn.disabled = false;
+    btn.textContent = 'إرسال طلب الطباعة';
+  }
+};
+
+/* ==================== My Jobs List ==================== */
+let myJobsLoaded=false;
+let myJobsLoading=false;
+async function renderMyJobs(){
+  const cur = Store.getUser();
+  if (!cur) return;
+  if(myJobsLoading)return;
+  myJobsLoading=true;
+  const box=$('my-jobs');
+  if(!myJobsLoaded)box.innerHTML='<div class="loading-state">جارٍ تحميل طلباتك…</div>';
+  let myJobs=[];
+  try {
+    const {db}=await window.printCloud.customerSession();
+    const {data:jobs,error}=await db.from('print_jobs').select('*, print_job_files(*)').eq('user_id',cur.id).order('created_at',{ascending:false});
+    if(error)throw error;
+    myJobs=(jobs||[]).map(j=>({id:j.id,files:(j.print_job_files||[]).map(f=>({name:f.file_name,size:f.byte_size,type:f.mime_type})),fileName:(j.print_job_files||[]).map(f=>f.file_name).join(', '),color:j.color,size:j.paper_size,type:j.paper_type,copies:j.copies,pricingQuantity:j.pricing_quantity,unitPrice:j.unit_price,totalPrice:j.total_price,notes:j.notes,status:j.status,createdAt:Date.parse(j.created_at)}));
+  } catch(error){
+    console.error(error);
+    myJobsLoaded=true;
+    myJobsLoading=false;
+    box.innerHTML='<div class="error-state"><p>تعذر تحميل طلباتك. تحقق من اتصال الإنترنت ثم أعد المحاولة.</p><button type="button" class="btn btn-ghost" data-retry-jobs style="margin-top:12px">إعادة المحاولة</button></div>';
+    return;
+  }
+  myJobsLoaded=true;
+  myJobsLoading=false;
+  if (!myJobs.length){
+    box.innerHTML = '<div class="empty-state">لا توجد طلبات سابقة. أرسل طلبك الأول وسيظهر هنا.</div>';
+    return;
+  }
+
+  const statusMap = {
+    pending:  { cls:'wait', icon:'⏳', text:'بانتظار قبول الإدارة' },
+    accepted: { cls:'ok',   icon:'✅', text:'تم القبول - جارٍ التجهيز' },
+    printing: { cls:'wait', icon:'🖨️', text:'قيد الطباعة الآن' },
+    done:     { cls:'ok',   icon:'🎉', text:'جاهز للاستلام' },
+    rejected: { cls:'err',  icon:'❌', text:'تم الرفض' }
+  };
+
+  box.innerHTML = `
+    ${myJobs.map(j => {
+      const s = statusMap[j.status] || statusMap.pending;
+      const title=j.files?.length>1?`${j.files.length} ملفات للطباعة`:j.files?.[0]?.name||j.fileName||'طلب طباعة';
+      const paperType=({'normal':'ورق عادي','photo-medium':'صور لامع متوسط','photo-good':'صور لامع جيد','sticker':'صور لاصق','glossy':'صور لامع متوسط','thick':'ورق سميك'})[j.type]||'ورق عادي';
+      const total=j.totalPrice==null?'غير متاح':`${Number(j.totalPrice)} دج`;
+      const pricingInfo=`<div>كمية التسعير: <strong>${j.pricingQuantity==null?'—':j.pricingQuantity}</strong> · سعر الوحدة: <strong>${j.unitPrice==null?'—':Number(j.unitPrice)+' دج'}</strong> · المجموع المحفوظ: <strong>${total}</strong></div>`;
+      const details=j.files?.length?`<details class="job-details"><summary>عرض تفاصيل السعر والملفات (${j.files.length})</summary>${pricingInfo}<ul>${j.files.map(f=>`<li>${escapeHtml(f.name)} · ${humanFileSize(Number(f.size)||0)}</li>`).join('')}</ul>${j.notes?`<p style="margin-top:8px">ملاحظات: ${escapeHtml(j.notes)}</p>`:''}</details>`:'';
+      return `
+        <div class="job-card">
+          <div class="job-card-head"><div class="job-title" title="${escapeHtml(title)}">${escapeHtml(title)}</div><span class="job-status ${s.cls}">${s.text}</span></div>
+          <div class="job-meta">
+            ${new Date(j.createdAt).toLocaleString('ar-DZ')}<br>
+            ${j.copies} نسخة · ${escapeHtml(j.size)} · ${j.color === 'color' ? 'ملون' : 'أبيض وأسود'} · ${paperType}
+          </div>
+          ${details}
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+$('my-jobs').addEventListener('click',event=>{
+  if(!event.target.closest('[data-retry-jobs]'))return;
+  myJobsLoaded=false;
+  renderMyJobs();
+});
+
+/* ==================== PWA Install ==================== */
+let deferredPrompt = null;
+const installInvite=$('install-invite');
+const installHelp=$('install-help');
+const installTitle=installInvite.querySelector('.install-copy strong');
+function showInstallInvite(){
+  const current=Store.getUser();
+  if(!current||current.status!=='approved')return;
+  installInvite.classList.remove('hidden');
+  const installed=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+  if(installed){installTitle.textContent='التطبيق مثبت';installHelp.textContent='خدمة الطباعة جاهزة على شاشة هاتفك.';hide('btn-install');return;}
+  if(deferredPrompt)show('btn-install');
+  else if(/iphone|ipad|ipod/i.test(navigator.userAgent))installHelp.textContent='للتثبيت على iPhone أو iPad: اضغط «مشاركة» في Safari ثم «إضافة إلى الشاشة الرئيسية».';
+  else installHelp.textContent='أضف خدمة الطباعة إلى شاشة هاتفك لفتحها بسرعة ومتابعة طلباتك. إذا لم يظهر زر التثبيت، افتح قائمة المتصفح واختر «إضافة إلى الشاشة الرئيسية».';
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallInvite();
+});
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;installTitle.textContent='التطبيق مثبت';installHelp.textContent='خدمة الطباعة جاهزة على شاشة هاتفك.';hide('btn-install');});
+$('btn-install').onclick = async () => {
+  if (!deferredPrompt) return showInstallInvite();
+  await deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') toast('تم تثبيت التطبيق 🎉', 'ok');
+  deferredPrompt = null;
+  hide('btn-install');
+};
+
+/* ==================== Router ==================== */
+function routeByStatus(user){
+  hide('screen-register');
+  hide('screen-wait');
+  hide('screen-submit');
+  if (user.status === 'approved'){
+    show('screen-submit');
+    showInstallInvite();
+    updatePrice();
+    loadApprovedPricing();
+    renderMyJobs();
+  } else if (user.status === 'rejected'){
+    $('wait-title').textContent='❌ تم رفض طلبك';
+    $('wait-subtitle').textContent='تواصل مع الإدارة. ستظهر أي تغييرات على حالة حسابك تلقائيًا.';
+    $('wait-message').className='status-box err';
+    $('wait-message').textContent='تم رفض الحساب';
+    show('screen-wait');
+  } else {
+    $('wait-title').textContent='⏳ طلبك قيد المراجعة';
+    $('wait-subtitle').textContent='سيتم إعلامك عند موافقة الإدارة تلقائيًا. لا تغلق الصفحة.';
+    $('wait-message').className='status-box wait';
+    $('wait-message').innerHTML='<span class="loading-dots">بانتظار قبول الإدارة</span>';
+    show('screen-wait');
+    startApprovalPolling();
+  }
+}
+
+/* ==================== Live Sync (BroadcastChannel) ==================== */
+try {
+  const bc = new BroadcastChannel('print-system');
+  bc.onmessage = (e) => {
+    if (e.data?.type === 'update' && e.data.key === 'users') checkApproval();
+    if (e.data?.type === 'update' && e.data.key === 'jobs') renderMyJobs();
+  };
+} catch(e){}
+
+/* ==================== Polling fallback ==================== */
+setInterval(() => {
+  const cur = Store.getUser();
+  if (cur) checkApproval();
+}, 3000);
+
+setInterval(() => {
+  const cur = Store.getUser();
+  if (cur && cur.status === 'approved') renderMyJobs();
+}, 3000);
+
+/* ==================== Init ==================== */
+(function init(){
+  const cur = Store.getUser();
+  if (cur) routeByStatus(cur);
+  else show('screen-register');
+})();
+
+/* ==================== Service Worker ==================== */
+if ('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#7c3aed">
+<title>⚙️ لوحة إدارة الطباعة</title>
+<style>
+  :root{
+    --primary:#7c3aed; --primary-dark:#6d28d9;
+    --success:#16a34a; --success-light:#dcfce7;
+    --danger:#dc2626; --danger-light:#fee2e2;
+    --warning:#f59e0b; --warning-light:#fef9c3;
+    --info:#2563eb; --info-light:#dbeafe;
+    --bg:#f1f5f9; --card:#fff; --txt:#0f172a; --muted:#64748b;
+    --border:#e2e8f0;
+    --radius:14px; --shadow:0 2px 12px rgba(15,23,42,.06);
+    --transition:.2s cubic-bezier(.4,0,.2,1);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+    background:var(--bg); color:var(--txt); height:100vh; overflow:hidden;
+    display:flex;flex-direction:column;
+    line-height:1.6;
+  }
+  .admin-header{
+    background:linear-gradient(135deg, #7c3aed, #a855f7);
+    color:#fff; padding:16px 24px;
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:12px;
+    box-shadow:0 4px 12px rgba(124,58,237,.25);
+  }
+  .admin-header h1{font-size:1.15rem; display:flex; align-items:center; gap:8px;}
+  .admin-header .badge{
+    background:rgba(255,255,255,.2); padding:4px 12px;
+    border-radius:20px; font-size:.8rem; font-weight:600;
+  }
+  .admin-header .print-total{
+    min-width:210px;padding:7px 16px;border-radius:12px;
+    background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);
+    display:flex;flex-direction:column;align-items:center;line-height:1.25;
+  }
+  .admin-header .print-total small{font-size:.72rem;opacity:.9;}
+  .admin-header .print-total strong{font-size:1.45rem;font-weight:800;letter-spacing:.3px;}
+  .admin-header .actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .admin-header button{
+    background:rgba(255,255,255,.15); color:#fff;
+    border:1px solid rgba(255,255,255,.3);
+    padding:8px 14px; border-radius:8px;
+    font-size:.85rem; font-weight:600; cursor:pointer;
+    transition:background var(--transition);
+    font-family:inherit;
+  }
+  .admin-header button:hover{background:rgba(255,255,255,.25);}
+
+  .dashboard-layout{
+    max-width:1400px; margin:0 auto;
+    padding:16px 24px 24px;
+    flex:1 1 0;min-height:0;overflow:hidden;
+    display:grid;
+    grid-template-columns:260px minmax(0,1fr);
+    grid-template-areas:"sidebar tabs" "sidebar main";
+    grid-template-rows:auto minmax(0,1fr);
+    column-gap:18px; align-items:stretch;
+  }
+  .dashboard-sidebar{
+    grid-area:sidebar; display:flex; flex-direction:column;align-self:start;
+    gap:12px; position:sticky; top:16px;
+  }
+  .stats{display:grid; grid-template-columns:1fr; gap:12px; align-content:start;}
+  .stat{
+    background:var(--card); border-radius:var(--radius);
+    padding:16px 18px; box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    position:relative; overflow:hidden;
+  }
+  .stat::before{content:''; position:absolute; top:0; right:0; width:4px; height:100%;}
+  .stat:nth-child(1)::before{background:var(--info);}
+  .stat:nth-child(2)::before{background:var(--warning);}
+  .stat:nth-child(3)::before{background:var(--success);}
+  .stat:nth-child(4)::before{background:var(--primary);}
+  .stat small{color:var(--muted); font-size:.75rem; display:block; margin-bottom:4px;}
+  .stat strong{font-size:1.5rem; font-weight:700;}
+  .stat:nth-child(1) strong{color:var(--info);}
+  .stat:nth-child(2) strong{color:var(--warning);}
+  .stat:nth-child(3) strong{color:var(--success);}
+  .stat:nth-child(4) strong{color:var(--primary);}
+
+  .tabs{
+    grid-area:tabs; display:flex; gap:8px;align-self:start;
+    margin:0 0 16px; flex-wrap:wrap;
+  }
+  .tab{
+    padding:10px 20px; border-radius:10px 10px 0 0;
+    background:transparent; border:none;
+    color:var(--muted); font-size:.9rem; font-weight:600;
+    cursor:pointer; border-bottom:3px solid transparent;
+    transition:all var(--transition);
+    display:flex; align-items:center; gap:8px;
+    font-family:inherit;
+  }
+  .tab:hover{color:var(--txt); background:rgba(255,255,255,.5);}
+  .tab.active{
+    color:var(--primary); background:var(--card);
+    border-bottom-color:var(--primary);
+    box-shadow:0 -2px 8px rgba(15,23,42,.04);
+  }
+  .tab .count{
+    background:var(--bg); color:var(--muted);
+    padding:2px 8px; border-radius:10px; font-size:.75rem;
+  }
+  .tab.active .count{background:var(--primary); color:#fff;}
+
+  .main{grid-area:main; padding:0 0 24px;min-height:0;overflow:hidden;}
+  .panel{
+    background:var(--card); border-radius:var(--radius);
+    box-shadow:var(--shadow); border:1px solid var(--border);
+    padding:20px; display:none;
+  }
+  .panel.active{display:flex;flex-direction:column;height:100%;min-height:0;overflow:hidden;}
+  .panel h2{flex:0 0 auto;
+    font-size:1.1rem; margin-bottom:16px;
+    display:flex; align-items:center; gap:8px;
+  }
+
+  .table-wrap{flex:1 1 auto;height:0;min-height:0;overflow-x:auto;overflow-y:scroll;overscroll-behavior:contain;border-radius:10px;border:1px solid var(--border);}
+  table{width:100%; border-collapse:collapse; min-width:800px;}
+  th,td{padding:12px 14px; text-align:right; font-size:.88rem; border-bottom:1px solid var(--border);}
+  th{
+    background:var(--bg); color:var(--muted);
+    font-size:.75rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.3px;
+    position:sticky; top:0;
+  }
+  tbody tr:hover{background:var(--bg);}
+  tbody tr:last-child td{border-bottom:0;padding-bottom:20px;}
+  .attachment-preview-status{font-size:.72rem;color:var(--muted);margin-top:3px;}
+
+  .user-cell{display:flex; align-items:center; gap:10px;}
+  .avatar{
+    width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg, var(--info), var(--primary));
+    color:#fff; display:grid; place-items:center;
+    font-weight:700; font-size:.9rem; flex-shrink:0;
+  }
+  .user-info strong{display:block; font-size:.9rem;}
+  .user-info small{color:var(--muted); font-size:.75rem;}
+
+  .status-pill{
+    display:inline-flex; align-items:center; gap:4px;
+    padding:4px 10px; border-radius:12px;
+    font-size:.75rem; font-weight:700;
+  }
+  .status-pill.pending{background:var(--warning-light); color:#854d0e;}
+  .status-pill.approved{background:var(--success-light); color:#166534;}
+  .status-pill.rejected{background:var(--danger-light); color:#991b1b;}
+  .status-pill.accepted{background:var(--info-light); color:#1e40af;}
+  .status-pill.printing{background:var(--warning-light); color:#854d0e;}
+  .status-pill.done{background:var(--success-light); color:#166534;}
+
+  .actions-cell{display:flex; gap:6px; flex-wrap:wrap;}
+  .status-select{padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--txt);font:600 .8rem inherit;cursor:pointer;}
+  .btn-sm{
+    padding:6px 12px; border-radius:8px;
+    border:none; font-size:.75rem; font-weight:600;
+    cursor:pointer; transition:all var(--transition);
+    display:inline-flex; align-items:center; gap:4px;
+    white-space:nowrap; font-family:inherit;
+  }
+  .btn-sm:hover{transform:translateY(-1px);}
+  .btn-approve{background:var(--success-light); color:var(--success);}
+  .btn-approve:hover{background:#bbf7d0;}
+  .btn-reject{background:var(--danger-light); color:var(--danger);}
+  .btn-reject:hover{background:#fecaca;}
+  .btn-info{background:var(--info-light); color:var(--info);}
+  .btn-info:hover{background:#bfdbfe;}
+  .btn-primary{background:var(--primary); color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-warning{background:var(--warning-light); color:#854d0e;}
+  .btn-warning:hover{background:#fde68a;}
+  .btn-gray{background:var(--bg); color:var(--muted); border:1px solid var(--border);}
+  .btn-gray:hover{background:var(--border); color:var(--txt);}
+
+  .empty{text-align:center; padding:60px 20px; color:var(--muted);}
+  .empty .icon{font-size:3rem; margin-bottom:12px; opacity:.5;}
+  .empty h3{font-size:1rem; margin-bottom:6px;}
+  .empty p{font-size:.85rem;}
+
+  .filters{flex:0 0 auto;
+    display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;
+    align-items:center;
+  }
+  .filter-btn{
+    padding:7px 14px; border-radius:20px;
+    background:var(--bg); color:var(--muted);
+    border:1px solid transparent; font-size:.8rem; font-weight:600;
+    cursor:pointer; transition:all var(--transition);
+    font-family:inherit;
+  }
+  .filter-btn:hover{background:var(--border); color:var(--txt);}
+  .filter-btn.active{background:var(--primary); color:#fff;}
+  .search-input{
+    padding:9px 14px; border:1.5px solid var(--border);
+    border-radius:10px; font-size:.85rem;
+    background:var(--bg); flex:1; max-width:280px;
+    font-family:inherit;
+  }
+  .search-input:focus{outline:none; border-color:var(--primary); background:#fff;}
+
+  .modal{
+    display:none; position:fixed; inset:0;
+    background:rgba(15,23,42,.6); backdrop-filter:blur(4px);
+    z-index:1000; align-items:center; justify-content:center;
+    padding:16px;
+  }
+  .modal.show{display:flex;}
+  .modal-box{
+    background:var(--card); border-radius:var(--radius);
+    max-width:600px; width:100%; max-height:90vh;
+    overflow:auto; padding:24px;
+    animation:slideUp .25s ease;
+  }
+  .modal-box.gallery-modal{max-width:1120px;padding:20px;}
+  .file-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,205px),1fr));gap:10px;}
+  .file-tile{min-width:0;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:13px;overflow:hidden;background:var(--card);}
+  .file-preview{position:relative;flex:0 0 135px;height:135px;padding:6px;background:#eef2f7;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .file-preview img{position:static;display:block;flex:none;width:100%;height:100%;padding:5px;object-fit:contain;background:#fff;border-radius:7px;}
+  .file-preview iframe{width:100%;height:100%;border:0;background:#fff;}
+  .file-preview-error{padding:10px 14px;color:var(--muted);font-size:.8rem;text-align:center;}
+  .file-generic-icon{font-size:3.7rem;}
+  .file-tile-info{position:relative;z-index:1;flex:1;padding:11px 12px;background:var(--card);border-top:1px solid var(--border);}
+  .file-tile-name{position:static;display:block;font-size:.86rem;font-weight:700;line-height:1.45;overflow-wrap:anywhere;margin-bottom:3px;}
+  .file-tile-size{font-size:.74rem;color:var(--muted);margin-bottom:10px;}
+  .file-tile-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .file-tile-actions .btn-sm{flex:1;min-width:65px;}
+  @keyframes slideUp{from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);}}
+  .modal-box h3{margin-bottom:16px; font-size:1.1rem;}
+  .modal-box .close{
+    float:left; background:var(--bg); border:none;
+    width:32px; height:32px; border-radius:50%;
+    font-size:1.2rem; cursor:pointer; color:var(--muted);
+    font-family:inherit;
+  }
+  .modal-box .close:hover{background:var(--border); color:var(--txt);}
+  .info-row{
+    display:flex; justify-content:space-between;
+    padding:10px 0; border-bottom:1px solid var(--border);
+    font-size:.88rem; gap:12px;
+  }
+  .info-row:last-child{border-bottom:0;}
+  .info-row strong{color:var(--txt); flex-shrink:0;}
+  .info-row span{color:var(--muted); text-align:left;}
+  .modal-actions{display:flex; gap:8px; margin-top:20px; flex-wrap:wrap;}
+  .modal-actions button{
+    flex:1; padding:11px; border-radius:10px; border:none;
+    font-size:.88rem; font-weight:600; cursor:pointer;
+    min-width:120px; font-family:inherit;
+  }
+
+  .toasts{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    z-index:9999; display:flex; flex-direction:column; gap:8px;
+    max-width:420px; width:calc(100% - 32px);
+  }
+  .toast{
+    padding:12px 16px; border-radius:10px; color:#fff;
+    font-size:.88rem; font-weight:500;
+    box-shadow:0 8px 24px rgba(0,0,0,.15);
+    animation:slideDown .3s ease;
+    transition:opacity .3s;
+  }
+  .toast.ok{background:var(--success);}
+  .toast.err{background:var(--danger);}
+  .toast.info{background:var(--info);}
+  @keyframes slideDown{from{opacity:0; transform:translateY(-12px);} to{opacity:1; transform:translateY(0);}}
+
+  @media(max-width:768px){
+    .dashboard-layout{
+      grid-template-columns:minmax(0,1fr);
+      grid-template-areas:"sidebar" "tabs" "main";
+      grid-template-rows:auto auto minmax(0,1fr);
+      padding:12px 16px 16px; row-gap:14px;
+    }
+    .dashboard-sidebar{position:static; display:block;}
+    .stats{grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px;}
+    .tabs{margin:0;}
+    .main{padding:0;}
+    .admin-header{padding:12px 16px;}
+    .stat strong{font-size:1.2rem;}
+    th,td{padding:9px 10px; font-size:.8rem;}
+    .modal-box{padding:18px;}
+    .file-preview{flex-basis:120px;height:120px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="admin-header">
+  <h1>⚙️ لوحة إدارة الطباعة <span class="badge" id="liveBadge">🟢 مباشر</span></h1>
+  <div class="print-total" aria-live="polite"><small>مجموع أرباح الطباعة</small><strong id="stat-print-total">0 دج</strong></div>
+  <div class="actions">
+    <button onclick="refreshAll()">🔄 تحديث</button>
+    <button onclick="exportReport()">📊 تصدير تقرير</button>
+    <button onclick="openQR()">📱 عرض QR للزبائن</button>
+    <button onclick="clearAllData()">🗑️ مسح الكل</button>
+  </div>
+</header>
+
+<div class="dashboard-layout">
+<aside class="dashboard-sidebar" aria-label="ملخص لوحة التحكم">
+<section class="stats">
+  <div class="stat"><small>👥 إجمالي المستخدمين</small><strong id="stat-users">0</strong></div>
+  <div class="stat"><small>⏳ بانتظار الموافقة</small><strong id="stat-pending">0</strong></div>
+  <div class="stat"><small>🖨️ طلبات قيد التنفيذ</small><strong id="stat-active">0</strong></div>
+  <div class="stat"><small>✅ مكتملة اليوم</small><strong id="stat-done">0</strong></div>
+</section>
+</aside>
+
+<div class="tabs">
+  <button class="tab active" data-tab="users" onclick="switchTab('users')">
+    👥 المستخدمون <span class="count" id="tab-count-users">0</span>
+  </button>
+  <button class="tab" data-tab="jobs" onclick="switchTab('jobs')">
+    📄 طلبات الطباعة <span class="count" id="tab-count-jobs">0</span>
+  </button>
+</div>
+
+<div class="main">
+  <div class="panel active" id="panel-users">
+    <h2>👥 إدارة المستخدمين</h2>
+    <div class="filters">
+      <button class="filter-btn active" data-user-filter="all" onclick="setUserFilter('all')">الكل</button>
+      <button class="filter-btn" data-user-filter="pending" onclick="setUserFilter('pending')">⏳ بانتظار الموافقة</button>
+      <button class="filter-btn" data-user-filter="approved" onclick="setUserFilter('approved')">✅ معتمدون</button>
+      <button class="filter-btn" data-user-filter="rejected" onclick="setUserFilter('rejected')">❌ مرفوضون</button>
+      <input class="search-input" id="user-search" placeholder="🔎 بحث بالاسم أو الهاتف..." oninput="renderUsers()">
+    </div>
+    <div class="table-wrap">
+      <div id="users-table"></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-jobs">
+    <h2>📄 طلبات الطباعة</h2>
+    <div class="filters">
+      <button class="filter-btn active" data-job-filter="all" onclick="setJobFilter('all')">الكل</button>
+      <button class="filter-btn" data-job-filter="pending" onclick="setJobFilter('pending')">⏳ جديدة</button>
+      <button class="filter-btn" data-job-filter="accepted" onclick="setJobFilter('accepted')">✅ مقبولة</button>
+      <button class="filter-btn" data-job-filter="printing" onclick="setJobFilter('printing')">🖨️ قيد الطباعة</button>
+      <button class="filter-btn" data-job-filter="done" onclick="setJobFilter('done')">🎉 مكتملة</button>
+      <input class="search-input" id="job-search" placeholder="🔎 بحث..." oninput="renderJobs()">
+    </div>
+    <div class="table-wrap">
+      <div id="jobs-table"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <button class="close" onclick="closeModal()">×</button>
+    <h3 id="modal-title"></h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+'use strict';
+
+const supabaseReady = window.printSupabaseReady;
+let cloudClient = null;
+supabaseReady.then(client => { cloudClient = client; }).catch(error => console.error('Supabase init:', error));
+
+const CHANNEL_NAME = 'print-system';
+
+const Store = {
+  get(key){
+    return (window.printCloudCache && window.printCloudCache[key]) || [];
+  },
+  set(key, val){
+    if(window.printCloudCache)window.printCloudCache[key]=val;
+    broadcastUpdate(key);
+  },
+  remove(key){
+    if(window.printCloudCache)window.printCloudCache[key]=[];
+    broadcastUpdate(key);
+  }
+};
+
+let _bc = null;
+function getChannel(){
+  if (!_bc){
+    try { _bc = new BroadcastChannel(CHANNEL_NAME); } catch (e){ _bc = null; }
+  }
+  return _bc;
+}
+function broadcastUpdate(key){
+  const bc = getChannel();
+  if (bc) bc.postMessage({ type:'update', key, at: Date.now() });
+}
+
+const $ = id => document.getElementById(id);
+
+function toast(msg, type = 'ok', dur = 3000){
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  $('toasts').appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, dur);
+}
+
+function humanSize(bytes){
+  const b = Number(bytes) || 0;
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  return (b / 1024 / 1024).toFixed(1) + ' MB';
+}
+
+function getInitial(name){
+  return String(name || '?').trim().charAt(0).toUpperCase() || '?';
+}
+
+function timeAgo(ts){
+  if (!ts) return '—';
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 60) return 'الآن';
+  if (diff < 3600) return 'منذ ' + Math.floor(diff / 60) + ' دقيقة';
+  if (diff < 86400) return 'منذ ' + Math.floor(diff / 3600) + ' ساعة';
+  return 'منذ ' + Math.floor(diff / 86400) + ' يوم';
+}
+
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, m => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+  }[m]));
+}
+
+function escapeAttr(s){
+  return String(s == null ? '' : s).replace(/[\\"']/g, '\\$&');
+}
+
+function jobFiles(job){
+  if (Array.isArray(job.files) && job.files.length) return job.files;
+  return [];
+}
+
+function fileMime(name){
+  const ext = String(name || '').split('.').pop().toLowerCase();
+  return ({ pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', gif:'image/gif', webp:'image/webp' })[ext] || '';
+}
+function jobPrice(job){
+  const total=job.totalPrice;
+  return total===null||total===undefined?'غير مسعّر':`${Number.isInteger(total)?total:total.toFixed(2)} دج`;
+}
+function userPrintTotal(userId){
+  const user=Store.get('users').find(item=>String(item.id)===String(userId));
+  return Number(user?.totalPrintCost)||0;
+}
+function paperTypeLabel(type){
+  return ({'photo-medium':'صور لامع متوسط','photo-good':'صور لامع جيد',sticker:'صور لاصق',glossy:'صور لامع متوسط',thick:'سميك',normal:'عادي'})[type]||'عادي';
+}
+let userFilter = 'all';
+let jobFilter = 'all';
+
+function renderStats(){
+  const users = Store.get('users');
+  const jobs = Store.get('jobs');
+  const today = new Date().toDateString();
+  $('stat-users').textContent = users.length;
+  $('stat-pending').textContent = users.filter(u => u.status === 'pending').length;
+  $('stat-active').textContent = jobs.filter(j => j.status === 'pending' || j.status === 'accepted' || j.status === 'printing').length;
+  $('stat-done').textContent = jobs.filter(j => j.status === 'done' && new Date(j.updatedAt || j.createdAt).toDateString() === today).length;
+  $('tab-count-users').textContent = users.length;
+  $('tab-count-jobs').textContent = jobs.filter(j => j.status === 'pending').length;
+  const printTotal=users.reduce((sum,user)=>sum+(Number(user.totalPrintCost)||0),0);
+  $('stat-print-total').textContent=`${Number.isInteger(printTotal)?printTotal.toLocaleString('en-US'):printTotal.toLocaleString('en-US',{maximumFractionDigits:1})} دج`;
+}
+
+function renderUsers(){
+  const users = Store.get('users');
+  const q = $('user-search').value.trim().toLowerCase();
+  const filtered = users.filter(u => {
+    const match = (u.name + ' ' + u.phone).toLowerCase().includes(q);
+    if (!match) return false;
+    if (userFilter === 'all') return true;
+    return u.status === userFilter;
+  }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  const container = $('users-table');
+  if (!filtered.length){
+    container.innerHTML = '<div class="empty"><div class="icon">👥</div><h3>لا يوجد مستخدمون</h3><p>عندما يسجّل زبون جديد سيظهر هنا</p></div>';
+    return;
+  }
+
+  const statusMap = {
+    pending:  { cls:'pending',  text:'⏳ بانتظار' },
+    approved: { cls:'approved', text:'✅ معتمد' },
+    rejected: { cls:'rejected', text:'❌ مرفوض' }
+  };
+
+  let html = '<table><thead><tr><th>المستخدم</th><th>الهاتف</th><th>مجموع تكلفة الطباعة</th><th>الحالة</th><th>التسجيل</th><th>الإجراءات</th></tr></thead><tbody>';
+  filtered.forEach(u => {
+    const s = statusMap[u.status] || statusMap.pending;
+    const safeId = escapeAttr(u.id);
+    html += '<tr><td><div class="user-cell"><div class="avatar">' + escapeHtml(getInitial(u.name)) + '</div><div class="user-info"><strong>' + escapeHtml(u.name) + '</strong><small>#' + escapeHtml(String(u.id).slice(-6)) + '</small></div></div></td>';
+    html += '<td>' + escapeHtml(u.phone) + '</td>';
+    const total=userPrintTotal(u.id);
+    html += '<td><strong style="color:var(--primary);white-space:nowrap">' + (Number.isInteger(total)?total:total.toFixed(1)) + ' دج</strong></td>';
+    html += '<td><span class="status-pill ' + s.cls + '">' + s.text + '</span></td>';
+    html += '<td style="font-size:.8rem;color:var(--muted)">' + timeAgo(u.createdAt) + '</td>';
+    html += '<td><div class="actions-cell">';
+    html += '<select class="status-select" aria-label="تغيير حالة ' + escapeHtml(u.name) + '" onchange="changeUserStatus(\'' + safeId + '\',this.value)">' +
+      '<option value="pending"' + (u.status === 'pending' ? ' selected' : '') + '>⏳ بانتظار القبول</option>' +
+      '<option value="approved"' + (u.status === 'approved' ? ' selected' : '') + '>✅ معتمد</option>' +
+      '<option value="rejected"' + (u.status === 'rejected' ? ' selected' : '') + '>❌ مرفوض</option>' +
+      '</select>';
+    html += '<button class="btn-sm btn-gray" onclick="deleteUser(\'' + safeId + '\')">🗑️</button>';
+    html += '</div></td></tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function renderJobs(){
+  const jobs = Store.get('jobs');
+  const q = $('job-search').value.trim().toLowerCase();
+  const filtered = jobs.filter(j => {
+    const names = jobFiles(j).map(f => f.name).join(' ');
+    const haystack = (j.userName + ' ' + j.phone + ' ' + names + ' ' + (j.fileName || '')).toLowerCase();
+    if (!haystack.includes(q)) return false;
+    if (jobFilter === 'all') return true;
+    return j.status === jobFilter;
+  }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  const container = $('jobs-table');
+  if (!filtered.length){
+    container.innerHTML = '<div class="empty"><div class="icon">📄</div><h3>لا توجد طلبات طباعة</h3><p>عندما يرسل زبون طلبًا سيظهر هنا</p></div>';
+    return;
+  }
+
+  const statusMap = {
+    pending:  { cls:'pending',  text:'⏳ جديدة' },
+    accepted: { cls:'accepted', text:'✅ مقبولة' },
+    printing: { cls:'printing', text:'🖨️ قيد الطباعة' },
+    done:     { cls:'done',     text:'🎉 مكتملة' },
+    rejected: { cls:'rejected', text:'❌ مرفوضة' }
+  };
+
+  let html = '<table><thead><tr><th>الزبون</th><th>الملفات</th><th>الخيارات</th><th>التكلفة</th><th>الحالة</th><th>الوقت</th><th>الإجراءات</th></tr></thead><tbody>';
+  filtered.forEach(j => {
+    const s = statusMap[j.status] || statusMap.pending;
+    const safeId = escapeAttr(j.id);
+    const files = jobFiles(j);
+
+    const filesHtml = files.length
+      ? '<div style="display:flex;flex-direction:column;gap:8px"><strong>📎 '+files.length+' ملف'+(files.length===1?'':'ات')+'</strong><button class="btn-sm btn-info" onclick="openJobFiles(\''+safeId+'\')">🗂️ عرض الملفات</button></div>'
+      : '<span style="color:var(--muted)">لا ملفات</span>';
+
+    html += '<tr><td><div class="user-cell"><div class="avatar">' + escapeHtml(getInitial(j.userName)) + '</div><div class="user-info"><strong>' + escapeHtml(j.userName) + '</strong><small>' + escapeHtml(j.phone) + '</small></div></div></td>';
+    html += '<td>' + filesHtml + '</td>';
+    html += '<td style="font-size:.8rem">' + j.copies + ' نسخة • ' + escapeHtml(j.size) + ' • ' + (j.color === 'color' ? '🎨 ملون' : '⚫ أبيض وأسود') + '<br><small style="color:var(--muted)">ورق: ' + escapeHtml(paperTypeLabel(j.type)) + '</small></td>';
+    html += '<td><strong style="color:var(--primary);white-space:nowrap">' + escapeHtml(jobPrice(j)) + '</strong></td>';
+    html += '<td><span class="status-pill ' + s.cls + '">' + s.text + '</span></td>';
+    html += '<td style="font-size:.8rem;color:var(--muted)">' + timeAgo(j.createdAt) + '</td>';
+    html += '<td><div class="actions-cell">';
+    if (j.status === 'pending'){
+      html += '<button class="btn-sm btn-approve" onclick="acceptJob(\'' + safeId + '\')">✅ قبول</button>';
+      html += '<button class="btn-sm btn-reject" onclick="rejectJob(\'' + safeId + '\')">❌ رفض</button>';
+    }
+    if (j.status === 'accepted') html += '<button class="btn-sm btn-warning" onclick="startPrinting(\'' + safeId + '\')">🖨️ بدء الطباعة</button>';
+    if (j.status === 'printing') html += '<button class="btn-sm btn-approve" onclick="completeJob(\'' + safeId + '\')">✅ إكمال</button>';
+    html += '<button class="btn-sm btn-info" onclick="viewJob(\'' + safeId + '\')">👁️ عرض</button>';
+    html += '<button class="btn-sm btn-reject" onclick="deleteJob(\'' + safeId + '\')">🗑️ حذف</button>';
+    html += '</div></td></tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+async function openJobFiles(id){
+  const job=Store.get('jobs').find(item=>String(item.id)===String(id));
+  if(!job)return toast('الطلب غير موجود','err');
+  const files=jobFiles(job);
+  if(!files.length)return toast('لا توجد ملفات مرفقة بهذا الطلب','info');
+  const safeId=escapeAttr(job.id);
+  openModal('🗂️ ملفات '+escapeHtml(job.userName||'الزبون'),'<div class="empty"><div class="icon">⏳</div><h3>جارٍ تجهيز معاينات الملفات</h3></div>');
+  $('modal').querySelector('.modal-box').classList.add('gallery-modal');
+  try{
+    const attachments=await Promise.all(files.map(async(file,index)=>{
+      const url=await window.printCloud.signedFile(file.path);
+      const type=file.type||fileMime(file.name);
+      const isImage=type.startsWith('image/')||/\.(jpe?g|png|gif|webp)$/i.test(file.name||'');
+      const isPdf=type==='application/pdf'||/\.pdf$/i.test(file.name||'');
+      const preview=isImage
+        ? '<img src="'+escapeHtml(url)+'" alt="" loading="eager">'
+        : isPdf
+          ? '<iframe src="'+escapeHtml(url)+'#toolbar=0&navpanes=0" title="معاينة '+escapeHtml(file.name)+'" loading="lazy"></iframe>'
+          : '<div class="file-generic-icon">'+(/\.docx?$/i.test(file.name||'')?'📝':'📄')+'</div>';
+      return '<article class="file-tile"><div class="file-preview">'+preview+'</div><div class="file-tile-info"><div class="file-tile-name">'+escapeHtml(file.name)+'</div><div class="file-tile-size">'+humanSize(file.size)+' · '+escapeHtml(type||'ملف')+'</div><div class="file-tile-actions"><button class="btn-sm btn-info" onclick="openFile(\''+safeId+'\','+index+')">👁 فتح</button><button class="btn-sm btn-primary" onclick="downloadFile(\''+safeId+'\','+index+')">⬇ تنزيل</button>'+(isImage||isPdf?'<button class="btn-sm btn-info" onclick="printFile(\''+safeId+'\','+index+')">🖨 طباعة</button>':'')+'</div></div></article>';
+    }));
+    $('modal-body').innerHTML='<div class="file-gallery">'+attachments.join('')+'</div>';
+    $('modal-body').querySelectorAll('.file-preview img').forEach(img=>img.addEventListener('error',()=>{
+      const placeholder=document.createElement('span');placeholder.className='file-preview-error';placeholder.textContent='تعذرت معاينة الصورة';img.replaceWith(placeholder);
+    },{once:true}));
+  }catch(error){console.error(error);$('modal-body').innerHTML='<div class="empty"><div class="icon">⚠️</div><h3>تعذر تحميل معاينات الملفات</h3><p>'+escapeHtml(error.message)+'</p></div>';}
+}
+
+async function approveUser(id){
+  const users = Store.get('users');
+  const u = users.find(x => x.id === id);
+  if (!u) return toast('المستخدم غير موجود', 'err');
+  try { await window.printCloud.setUserStatus(id,'approved'); await window.printCloud.refreshAdmin(); }
+  catch(error){ console.error(error); return toast('تعذر تحديث المستخدم على Supabase: '+error.message,'err'); }
+  toast('✅ تم قبول ' + u.name, 'ok');
+  renderAll();
+}
+
+async function changeUserStatus(id,status){
+  if(!['pending','approved','rejected'].includes(status))return;
+  const user=Store.get('users').find(item=>String(item.id)===String(id));
+  if(!user)return toast('المستخدم غير موجود','err');
+  if(user.status===status)return;
+  try{
+    await window.printCloud.setUserStatus(id,status);
+    await window.printCloud.refreshAdmin();
+  }catch(error){
+    console.error(error);
+    toast('تعذر تحديث حالة المستخدم: '+error.message,'err');
+    await window.printCloud.refreshAdmin().catch(()=>{});
+    renderAll();
+    return;
+  }
+  const label={pending:'بانتظار قبول الإدارة',approved:'تم اعتماد الحساب',rejected:'تم رفض الحساب'}[status];
+  toast(label+' — '+user.name,'ok');
+  renderAll();
+}
+
+async function rejectUser(id){
+  const users = Store.get('users');
+  const u = users.find(x => x.id === id);
+  if (!u) return toast('المستخدم غير موجود', 'err');
+  if (!confirm('رفض/تعليق ' + u.name + '؟')) return;
+  try { await window.printCloud.setUserStatus(id,'rejected'); await window.printCloud.refreshAdmin(); }
+  catch(error){ console.error(error); return toast('تعذر تحديث المستخدم على Supabase: '+error.message,'err'); }
+  toast('❌ تم رفض ' + u.name, 'info');
+  renderAll();
+}
+
+async function deleteUser(id){
+  const users = Store.get('users');
+  const u = users.find(x => x.id === id);
+  if (!u) return toast('المستخدم غير موجود', 'err');
+  if (!confirm('حذف ' + u.name + ' نهائيًا؟')) return;
+  try {
+    const db=await window.printCloud.client();
+    const {data:files,error:fileError}=await db.from('print_job_files').select('object_path').eq('user_id',id);
+    if(fileError)throw fileError;
+    if(files?.length){const {error}=await db.storage.from('print-files').remove(files.map(f=>f.object_path));if(error)throw error;}
+    const {error}=await db.from('print_users').delete().eq('id',id);if(error)throw error;
+    await window.printCloud.refreshAdmin();
+  } catch(error){console.error(error);return toast('تعذر حذف المستخدم والملفاته من Supabase: '+error.message,'err');}
+  toast('🗑️ تم الحذف', 'info');
+  renderAll();
+}
+
+async function acceptJob(id){
+  const jobs = Store.get('jobs');
+  const j = jobs.find(x => x.id === id);
+  if (!j) return toast('الطلب غير موجود', 'err');
+  try { await window.printCloud.setJobStatus(id,'accepted'); await window.printCloud.refreshAdmin(); }
+  catch(error){ console.error(error); return toast('تعذر تحديث الطلب على Supabase: '+error.message,'err'); }
+  toast('✅ تم قبول طلب ' + j.userName, 'ok');
+  renderAll();
+}
+
+async function rejectJob(id){
+  const jobs = Store.get('jobs');
+  const j = jobs.find(x => x.id === id);
+  if (!j) return toast('الطلب غير موجود', 'err');
+  if (!confirm('رفض طلب ' + j.userName + '؟')) return;
+  try { await window.printCloud.setJobStatus(id,'rejected'); await window.printCloud.refreshAdmin(); }
+  catch(error){ console.error(error); return toast('تعذر تحديث الطلب على Supabase: '+error.message,'err'); }
+  toast('❌ تم رفض الطلب', 'info');
+  renderAll();
+}
+
+async function deleteJob(id){
+  const jobs = Store.get('jobs');
+  const job = jobs.find(item => String(item.id) === String(id));
+  if (!job) return toast('الطلب غير موجود', 'err');
+  if (!confirm('حذف طلب ' + (job.userName || 'الزبون') + ' نهائيًا مع جميع صوره وملفاته؟')) return;
+  try {
+    await window.printCloud.refreshAdmin();
+    await window.printCloud.deleteJob(id);
+    await window.printCloud.refreshAdmin();
+  } catch(error) {
+    console.error(error);
+    return toast('تعذر حذف الطلب ومرفقاته من Supabase: ' + error.message, 'err');
+  }
+  closeModal();
+  toast('🗑️ تم حذف الطلب وجميع مرفقاته', 'info');
+  renderAll();
+}
+
+async function startPrinting(id){
+  const jobs = Store.get('jobs');
+  const j = jobs.find(x => x.id === id);
+  if (!j) return toast('الطلب غير موجود', 'err');
+  try { await window.printCloud.setJobStatus(id,'printing'); await window.printCloud.refreshAdmin(); }
+  catch(error){ console.error(error); return toast('تعذر تحديث الطلب على Supabase: '+error.message,'err'); }
+  toast('🖨️ بدء طباعة ' + (j.fileName || 'الطلب'), 'info');
+  renderAll();
+}
+
+async function completeJob(id){
+  const jobs = Store.get('jobs');
+  const j = jobs.find(x => x.id === id);
+  if (!j) return toast('الطلب غير موجود', 'err');
+  try { await window.printCloud.setJobStatus(id,'done'); await window.printCloud.refreshAdmin(); }
+  catch(error){ console.error(error); return toast('تعذر تحديث الطلب على Supabase: '+error.message,'err'); }
+  toast('🎉 تم إكمال طلب ' + j.userName, 'ok');
+  renderAll();
+}
+
+function viewJob(id){
+  const j = Store.get('jobs').find(x => x.id === id);
+  if (!j) return toast('الطلب غير موجود', 'err');
+  const safeId = escapeAttr(j.id);
+  const files = jobFiles(j);
+
+  const filesBlock = files.length
+    ? '<button class="btn-sm btn-info" onclick="openJobFiles(\'' + safeId + '\')">🗂️ عرض الملفات (' + files.length + ')</button>'
+    : '—';
+
+  let actions = '';
+  if (j.status === 'pending') actions += '<button class="btn-approve" onclick="acceptJob(\'' + safeId + '\'); closeModal();">✅ قبول</button>';
+  if (j.status === 'accepted') actions += '<button class="btn-warning" onclick="startPrinting(\'' + safeId + '\'); closeModal();">🖨️ بدء الطباعة</button>';
+  if (j.status === 'printing') actions += '<button class="btn-approve" onclick="completeJob(\'' + safeId + '\'); closeModal();">✅ إكمال</button>';
+
+  openModal('👁️ تفاصيل الطلب',
+    '<div class="info-row"><strong>الزبون:</strong><span>' + escapeHtml(j.userName) + '</span></div>' +
+    '<div class="info-row"><strong>الهاتف:</strong><span>' + escapeHtml(j.phone) + '</span></div>' +
+    '<div class="info-row"><strong>الملفات (' + files.length + '):</strong><span>' + filesBlock + '</span></div>' +
+    '<div class="info-row"><strong>النسخ:</strong><span>' + j.copies + '</span></div>' +
+    '<div class="info-row"><strong>الورق:</strong><span>' + escapeHtml(j.size) + ' - ' + escapeHtml(paperTypeLabel(j.type)) + '</span></div>' +
+    '<div class="info-row"><strong>الألوان:</strong><span>' + (j.color === 'color' ? '🎨 ملون' : '⚫ أبيض وأسود') + '</span></div>' +
+    '<div class="info-row"><strong>كمية التسعير:</strong><span>' + (j.pricingQuantity==null?'—':j.pricingQuantity+' ورقة/نسخة') + '</span></div>' +
+    '<div class="info-row"><strong>سعر الوحدة:</strong><span>' + (j.unitPrice==null?'—':escapeHtml(String(j.unitPrice))+' دج') + '</span></div>' +
+    '<div class="info-row"><strong>المجموع المحفوظ:</strong><span><strong>' + escapeHtml(jobPrice(j)) + '</strong></span></div>' +
+    '<div class="info-row"><strong>ملاحظات:</strong><span>' + escapeHtml(j.notes || '—') + '</span></div>' +
+    '<div class="info-row"><strong>التاريخ:</strong><span>' + new Date(j.createdAt).toLocaleString('ar-DZ') + '</span></div>' +
+    '<div class="modal-actions">' + actions + '<button class="btn-gray" onclick="closeModal()">إغلاق</button></div>'
+  );
+}
+
+async function getAttachment(id, index, meta){
+  if(!meta?.path)throw new Error('مسار المرفق غير موجود في Supabase Storage');
+  const url=await window.printCloud.signedFile(meta.path);
+  return {url,temporaryUrl:'',type:meta.type||fileMime(meta.name)};
+}
+
+async function downloadFile(id, index){
+  index = index || 0;
+  const j = Store.get('jobs').find(x => x.id === id);
+  const meta = j && jobFiles(j)[index];
+  if (!meta) return toast('لا يوجد ملف', 'err');
+  try {
+    const db=await window.printCloud.client();
+    const {data:blob,error}=await db.storage.from('print-files').download(meta.path);
+    if(error)throw error;
+    const url=URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = meta.name || 'print-file';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    toast('⬇️ جارٍ التحميل', 'info');
+  } catch (error){ console.error(error); toast('تعذر تحميل الملف', 'err'); }
+}
+
+async function openFile(id, index){
+  index = index || 0;
+  const win = window.open('about:blank', '_blank');
+  if (!win) return toast('اسمح بالنوافذ المنبثقة', 'err');
+  const j = Store.get('jobs').find(x => x.id === id);
+  const meta = j && jobFiles(j)[index];
+  if (!meta){ win.close(); return toast('لا يوجد ملف', 'err'); }
+  try {
+    const att = await getAttachment(id, index, meta);
+    win.location.href = att.url;
+    if (att.temporaryUrl) setTimeout(() => URL.revokeObjectURL(att.temporaryUrl), 120000);
+  } catch (error){ console.error(error); win.close(); toast('تعذر فتح المرفق', 'err'); }
+}
+
+async function printFile(id, index) {
+  const job=Store.get('jobs').find(item=>String(item.id)===String(id));
+  const meta=job&&jobFiles(job)[index];
+  if(!meta)return toast('لا يوجد ملف','err');
+  const name=meta.name||'';
+  const ext=name.includes('.')?name.slice(name.lastIndexOf('.')).toLowerCase():'';
+  const type=meta.type||fileMime(name);
+  const isImage=type.startsWith('image/')||/\.(jpe?g|png|gif|webp)$/i.test(ext);
+  const isPdf=type==='application/pdf'||ext==='.pdf';
+  if(!isImage&&!isPdf)return toast('الطباعة المباشرة للصور وPDF فقط','info',6000);
+  try{
+    const db=await window.printCloud.client();
+    const {data:blob,error}=await db.storage.from('print-files').download(meta.path);
+    if(error)throw error;
+    printBlobInCurrentPage(blob,type,name);
+  }catch(error){console.error('خطأ الطباعة:',error);toast('تعذر تجهيز الملف للطباعة: '+error.message,'err');}
+}
+
+function printBlobInCurrentPage(blob,type,title){
+  const old=document.getElementById('print-frame');if(old)old.remove();
+  const frame=document.createElement('iframe');frame.id='print-frame';
+  frame.title=title||'مرفق للطباعة';
+  Object.assign(frame.style,{position:'fixed',left:'-10000px',top:'0',width:'1000px',height:'1200px',border:'0'});
+  const url=URL.createObjectURL(blob);let cleaned=false;
+  const cleanup=()=>{if(cleaned)return;cleaned=true;frame.remove();URL.revokeObjectURL(url);};
+  const isPdf=type==='application/pdf'||/\.pdf$/i.test(title||'');
+  const preview=isPdf
+    ? '<embed src="'+escapeAttr(url)+'" type="application/pdf">'
+    : '<img src="'+escapeAttr(url)+'" alt="">';
+  frame.srcdoc='<!doctype html><html><head><meta charset="utf-8"><title>'+escapeHtml(title||'مرفق للطباعة')+'</title><style>html,body{margin:0;width:100%;height:100%;display:grid;place-items:center}img{max-width:100%;max-height:100vh;object-fit:contain}embed{width:100%;height:100vh}@page{margin:8mm}</style></head><body>'+preview+'</body></html>';
+  frame.onload=()=>setTimeout(()=>{
+    try{frame.contentWindow.focus();frame.contentWindow.addEventListener('afterprint',cleanup,{once:true});frame.contentWindow.print();}
+    catch(error){cleanup();toast('تعذر فتح نافذة الطباعة: '+error.message,'err');}
+  },350);
+  document.body.appendChild(frame);setTimeout(cleanup,120000);
+}
+
+function setUserFilter(f){
+  userFilter = f;
+  document.querySelectorAll('[data-user-filter]').forEach(b => b.classList.toggle('active', b.dataset.userFilter === f));
+  renderUsers();
+}
+function setJobFilter(f){
+  jobFilter = f;
+  document.querySelectorAll('[data-job-filter]').forEach(b => b.classList.toggle('active', b.dataset.jobFilter === f));
+  renderJobs();
+}
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+}
+
+function openModal(title, body){
+  const box=$('modal').querySelector('.modal-box');
+  box.classList.remove('gallery-modal');
+  $('modal-title').innerHTML = title;
+  $('modal-body').innerHTML = body;
+  $('modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  $('modal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+function openQR(){
+  const target = new URL('indes.html', window.location.href).href;
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(target);
+  openModal('📱 رمز QR للزبائن',
+    '<p style="text-align:center;color:var(--muted);margin-bottom:16px;font-size:.9rem">اطبع هذا الرمز وضعه في المحل. الزبون يمسحه ليفتح صفحة التسجيل مباشرة.</p>' +
+    '<div style="text-align:center;padding:20px;background:#fff;border-radius:10px"><img src="' + qrUrl + '" alt="QR" style="width:100%;max-width:300px"></div>' +
+    '<div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:8px;font-size:.8rem;word-break:break-all;text-align:center">' + escapeHtml(target) + '</div>' +
+    '<div class="modal-actions"><button class="btn-primary" onclick="printQRCode()">🖨️ طباعة QR</button><button class="btn-gray" onclick="closeModal()">إغلاق</button></div>'
+  );
+}
+
+function printQRCode(){
+  const target = new URL('indes.html', window.location.href).href;
+  const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(target);
+  const win = window.open('', '_blank');
+  if (!win) return toast('اسمح بالنوافذ المنبثقة', 'err');
+  win.document.open();
+  win.onload = () => setTimeout(() => win.print(), 500);
+  win.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>QR</title><style>body{font-family:system-ui,Arial,sans-serif;text-align:center;padding:40px;direction:rtl}img{max-width:400px;width:100%}h1{font-size:22px;margin-bottom:8px}p{color:#475569;margin-bottom:20px}.url{font-size:12px;color:#64748b;word-break:break-all;margin-top:16px}</style></head><body><h1>🖨️ خدمة الطباعة</h1><p>امسح الرمز للبدء</p><img src="' + qrUrl + '" alt="QR"><div class="url">' + escapeHtml(target) + '</div></body></html>');
+  win.document.close();
+}
+
+function exportReport(){
+  const users = Store.get('users');
+  const jobs = Store.get('jobs');
+  const data = {
+    exportedAt: new Date().toISOString(),
+    stats: {
+      totalUsers: users.length,
+      approvedUsers: users.filter(u => u.status === 'approved').length,
+      totalJobs: jobs.length,
+      doneJobs: jobs.filter(j => j.status === 'done').length
+    },
+    users: users,
+    jobs: jobs
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'print-system-report-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('📊 تم تصدير التقرير', 'ok');
+}
+
+async function clearAllData(){
+  if (!confirm('⚠️ سيتم مسح كل المستخدمين والطلبات نهائيًا. متابعة؟')) return;
+  if (!confirm('تأكيد أخير: لا يمكن التراجع!')) return;
+  try {
+    const db=await window.printCloud.client();
+    const {data:files,error:fileError}=await db.from('print_job_files').select('object_path');if(fileError)throw fileError;
+    if(files?.length){const {error}=await db.storage.from('print-files').remove(files.map(f=>f.object_path));if(error)throw error;}
+    const {error}=await db.from('print_users').delete().not('id','is',null);if(error)throw error;
+    await window.printCloud.refreshAdmin();
+  } catch(error){console.error(error);toast('تعذر مسح البيانات السحابية: '+error.message,'err');return;}
+  toast('🗑️ تم مسح كل البيانات', 'info');
+  renderAll();
+}
+
+function refreshAll(){
+  renderAll();
+  toast('🔄 تم التحديث', 'info', 1500);
+}
+
+function renderAll(){
+  renderStats();
+  renderUsers();
+  renderJobs();
+}
+
+(function setupSync(){
+  const bc = getChannel();
+  if (bc) bc.onmessage = (e) => { if (e.data && e.data.type === 'update') renderAll(); };
+  let pollTimer = null;
+  async function syncCloud(){
+    try { await window.printCloud.refreshAdmin(); renderAll(); }
+    catch(error){ if(!window._printAdminWarned){window._printAdminWarned=true;toast('يلزم دخول المدير وإعداده في Supabase: '+error.message,'err',7000);} }
+  }
+  async function startPolling(){ if (!pollTimer) pollTimer = setInterval(syncCloud, 5000); }
+  function stopPolling(){ if (pollTimer){ clearInterval(pollTimer); pollTimer = null; } }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopPolling();
+    else { syncCloud(); startPolling(); }
+  });
+  (async()=>{
+    try{
+      const db=await window.printCloud.client();
+      let check=await db.rpc('is_print_admin');
+      if(check.error||check.data!==true){
+        const email=prompt('البريد الإلكتروني لحساب الإدارة في Supabase:');if(!email)return;
+        const password=prompt('كلمة مرور حساب الإدارة:');if(!password)return;
+        await window.printCloud.adminSession(email,password);
+      }
+      await syncCloud();startPolling();
+    }catch(error){console.error(error);toast('تعذر الاتصال بـ Supabase: '+error.message,'err',8000);}
+  })();
+})();
+
+setInterval(() => { const b = $('liveBadge'); if (b) b.textContent = '🟢 مباشر'; }, 5000);
+
+renderAll();
+</script>
+</body>
+</html>

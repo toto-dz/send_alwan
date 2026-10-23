@@ -1,0 +1,17 @@
+{
+  "id": "./indes.html",
+  "name": "محل ألوان للطباعة و التصميم",
+  "short_name": "محل ألوان",
+  "description": "محل ألوان للطباعة و التصميم — اطلب طباعة ملفاتك وتابع حالة طلباتك",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./indes.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#059669",
+  "icons": [
+    { "src": "./icon-192.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
