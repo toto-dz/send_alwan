@@ -1,5 +1,5 @@
-const CACHE_NAME = 'print-service-v1';
-const APP_FILES = ['./indes.html', './manifest.json', './icon-192.svg', './icon-512.svg'];
+const CACHE_NAME = 'print-service-v2';
+const APP_FILES = ['./index.html', './manifest.json', './icon-192.svg', './icon-512.svg'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)));
@@ -21,5 +21,5 @@ self.addEventListener('fetch', event => {
       caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
     }
     return response;
-  }).catch(() => caches.match(event.request).then(cached => cached || caches.match('./indes.html'))));
+  }).catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html'))));
 });

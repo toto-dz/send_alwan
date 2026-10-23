@@ -517,17 +517,26 @@ $('btn-register').onclick = async () => {
   try {
     const {db,user:authUser}=await window.printCloud.customerSession();
     recoveryAuthId=authUser.id;
-    const {data:existing,error:readError}=await db.from('print_users').select('*').maybeSingle();
+    let {data:existing,error:readError}=await db.from('print_users').select('*').eq('id',authUser.id).maybeSingle();
     if(readError)throw readError;
+    if(!existing){
+      const linkedProfile=await db.rpc('current_print_user_id');
+      if(linkedProfile.error&&linkedProfile.error.code!=='PGRST202')throw linkedProfile.error;
+      if(!linkedProfile.error&&linkedProfile.data&&linkedProfile.data!==authUser.id){
+        const linkedRead=await db.from('print_users').select('*').eq('id',linkedProfile.data).maybeSingle();
+        if(linkedRead.error)throw linkedRead.error;
+        existing=linkedRead.data;
+      }
+    }
     if(existing){
       if(existing.name.trim().toLowerCase()!==name.toLowerCase()||existing.phone!==phone)
         throw new Error('أدخل اسم المستخدم ورقم الهاتف المطابقين للحساب المسجل.');
       const user={id:existing.id,name:existing.name,phone:existing.phone,status:existing.status,createdAt:Date.parse(existing.created_at)};
       Store.setUser(user);toast(`مرحبًا مجددًا ${user.name}!`,'ok');routeByStatus(user);return;
     }
-    const {data:row,error}=await db.from('print_users').insert({id:authUser.id,name,phone,status:'pending'}).select().single();
+    const {error}=await db.from('print_users').insert({id:authUser.id,name,phone,status:'pending'});
     if(error)throw error;
-    const user={id:row.id,name:row.name,phone:row.phone,status:row.status,createdAt:Date.parse(row.created_at)};
+    const user={id:authUser.id,name,phone,status:'pending',createdAt:Date.now()};
     Store.setUser(user);
   } catch (error) {
     console.error('Registration error:', {

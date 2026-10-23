@@ -868,7 +868,7 @@ $('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeMo
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 function openQR(){
-  const target = new URL('indes.html', window.location.href).href;
+  const target = new URL('index.html', window.location.href).href;
   const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(target);
   openModal('📱 رمز QR للزبائن',
     '<p style="text-align:center;color:var(--muted);margin-bottom:16px;font-size:.9rem">اطبع هذا الرمز وضعه في المحل. الزبون يمسحه ليفتح صفحة التسجيل مباشرة.</p>' +
@@ -879,7 +879,7 @@ function openQR(){
 }
 
 function printQRCode(){
-  const target = new URL('indes.html', window.location.href).href;
+  const target = new URL('index.html', window.location.href).href;
   const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=' + encodeURIComponent(target);
   const win = window.open('', '_blank');
   if (!win) return toast('اسمح بالنوافذ المنبثقة', 'err');
