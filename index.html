@@ -91,16 +91,7 @@
 
   /* Dropzone */
   .dropzone{
-    border:2px dashed var(--border); border-radius:12px;
-    padding:28px 16px; text-align:center; cursor:pointer;
-    transition:all var(--transition); background:var(--bg);
-  }
-  .dropzone:hover,.dropzone.dragover{
-    border-color:var(--primary); background:var(--primary-light);
-  }
-  .dropzone.has-file{
-    border-style:solid; border-color:var(--success);
-    background:var(--success-light);
+    padding:0; text-align:center;
   }
   .dropzone-icon{font-size:2rem; margin-bottom:8px;}
   .dropzone p{font-size:.9rem; margin-bottom:4px;}
@@ -225,8 +216,7 @@
   input,select,textarea{min-height:48px;border-radius:12px;}
   textarea{min-height:86px;resize:vertical;}
   .btn{min-height:50px;border-radius:12px;}
-  .dropzone{padding:12px;border-color:#a7d8c6;background:var(--card);}
-  .dropzone.has-file{background:var(--success-light);}
+  .dropzone{padding:0;background:transparent;}
   .file-picker-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
   .file-picker-actions .choice-button{min-height:58px;padding:12px 10px;font-size:.98rem;}
   .file-info.show{grid-template-columns:1fr;gap:8px;padding:8px 0;background:transparent;}
