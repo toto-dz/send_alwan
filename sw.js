@@ -1,5 +1,5 @@
-const CACHE_NAME = 'print-service-v13';
-const APP_FILES = ['./index.html', './manifest.json', './alwan.png', './printing-background.png', './icon-192.svg?v=3', './icon-512.svg?v=3'];
+const CACHE_NAME = 'print-service-v14';
+const APP_FILES = ['./index.html', './manifest.json', './alwan.png', './printing-background.png', './icon-192.svg?v=4', './icon-512.svg?v=4'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_FILES)));
