@@ -67,6 +67,10 @@
   .brand-text h1{font-size:1rem; font-weight:700;}
   .brand-text p{font-size:.75rem; color:var(--muted);}
   .header-actions{display:flex;align-items:center;gap:8px;}
+  .app-launch-screen{position:fixed;inset:0;z-index:10001;display:grid;place-content:center;justify-items:center;gap:16px;padding:24px;background:#fff;color:#0f172a;}
+  .app-launch-screen[hidden]{display:none;}
+  .app-launch-logo{width:140px;height:140px;object-fit:contain;}
+  .launch-caption{font-size:.88rem;color:#64748b;}
   .register-logo{display:block;width:min(72%,260px);height:auto;max-height:120px;object-fit:contain;margin:0 auto 14px;border-radius:8px;}
   .icon-btn{
     width:44px; height:44px; border:none; border-radius:12px;
@@ -313,6 +317,10 @@
 </head>
 <body>
 
+<div id="app-launch-screen" class="app-launch-screen" role="status" aria-live="polite">
+  <img class="app-launch-logo" src="./icon-512.svg?v=4" alt="شعار تطبيق ألوان">
+  <span class="launch-caption">جارٍ فتح التطبيق…</span>
+</div>
 <div class="toast-container" id="toasts" role="status" aria-live="polite"></div>
 <div id="job-status-notice" class="job-status-notice" role="alertdialog" aria-modal="true" aria-labelledby="job-status-notice-title" aria-describedby="job-status-notice-message" hidden>
   <div class="job-status-notice-card">
@@ -327,7 +335,7 @@
   <div class="brand">
     <img class="brand-logo" src="./alwan.png" alt="شعار ألوان">
     <div class="brand-text">
-      <h1> للطباعة و التصميم</h1>
+      <h1>محل ألوان للطباعة و التصميم</h1>
       <p>اطلب الطباعة والتصميم بسهولة من هاتفك</p>
     </div>
   </div>
@@ -564,8 +572,8 @@ function showPhoneNotification(info){
   if(!('Notification' in window)||Notification.permission!=='granted')return;
   navigator.serviceWorker?.ready.then(registration=>registration.showNotification(info.title,{
     body:info.message,
-    icon:'./icon-192.svg?v=3',
-    badge:'./icon-192.svg?v=3',
+    icon:'./icon-192.svg?v=4',
+    badge:'./icon-192.svg?v=4',
     tag:`print-status-${Date.now()}`,
     renotify:true,
     data:{url:'./index.html'}
@@ -1113,6 +1121,7 @@ setInterval(() => {
   if (cur) routeByStatus(cur);
   else show('screen-register');
 })();
+setTimeout(()=>{const launch=$('app-launch-screen');if(launch)launch.hidden=true;},1000);
 
 /* ==================== Service Worker ==================== */
 if ('serviceWorker' in navigator){

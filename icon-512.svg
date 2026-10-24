@@ -10,6 +10,7 @@
       <stop stop-color="#FFB21A"/><stop offset=".5" stop-color="#FF7A00"/><stop offset="1" stop-color="#E60055"/>
     </linearGradient>
   </defs>
+  <rect width="512" height="512" fill="#FFFFFF"/>
   <path d="M133 85Q133 70 149 70H267L314 117V246H133V85Z" fill="url(#paper)" stroke="url(#body)" stroke-width="12" stroke-linejoin="round"/>
   <path d="M267 70V117H314" fill="#FFD6E2" stroke="#C50055" stroke-width="8" stroke-linejoin="round"/>
   <path d="M160 145H272M160 174H252M160 203H224" stroke="#C50055" stroke-width="10" stroke-linecap="round"/>
@@ -24,7 +25,7 @@
   <circle cx="378" cy="345" r="78" fill="#FFFFFF"/>
   <circle cx="378" cy="345" r="66" fill="url(#check)"/>
   <path d="M343 345L367 369L414 318" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="391" cy="445" r="7" fill="#159DBA"/>
-  <circle cx="416" cy="445" r="7" fill="#E60065"/>
-  <circle cx="441" cy="445" r="7" fill="#FF8A00"/>
+  <circle cx="391" cy="445" r="7" fill="#159DBA"><animateTransform attributeName="transform" type="translate" values="0 0;0 -9;0 0" dur=".9s" begin="0s" repeatCount="indefinite"/></circle>
+  <circle cx="416" cy="445" r="7" fill="#E60065"><animateTransform attributeName="transform" type="translate" values="0 0;0 -9;0 0" dur=".9s" begin=".15s" repeatCount="indefinite"/></circle>
+  <circle cx="441" cy="445" r="7" fill="#FF8A00"><animateTransform attributeName="transform" type="translate" values="0 0;0 -9;0 0" dur=".9s" begin=".3s" repeatCount="indefinite"/></circle>
 </svg>
