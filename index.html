@@ -29,7 +29,13 @@
   *{box-sizing:border-box; margin:0; padding:0;}
   body{
     font-family:system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
-    background:var(--bg); color:var(--txt); min-height:100vh;
+    background-color:#f8fafc;
+    background-image:url("./printing-background.png");
+    background-position:center top;
+    background-repeat:no-repeat;
+    background-size:100% auto;
+    background-attachment:scroll;
+    color:var(--txt); min-height:100vh;
     padding:16px; padding-bottom:max(16px, env(safe-area-inset-bottom));
     line-height:1.6; transition:background var(--transition), color var(--transition);
   }
