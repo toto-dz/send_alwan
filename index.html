@@ -67,10 +67,9 @@
   .brand-text h1{font-size:1rem; font-weight:700;}
   .brand-text p{font-size:.75rem; color:var(--muted);}
   .header-actions{display:flex;align-items:center;gap:8px;}
-  .app-launch-screen{position:fixed;inset:0;z-index:10001;display:grid;place-content:center;justify-items:center;gap:16px;padding:24px;background:#fff;color:#0f172a;}
+  .app-launch-screen{position:fixed;inset:0;z-index:10001;display:grid;place-items:center;padding:24px;background:#fff;color:#0f172a;}
   .app-launch-screen[hidden]{display:none;}
-  .app-launch-logo{width:140px;height:140px;object-fit:contain;}
-  .launch-caption{font-size:.88rem;color:#64748b;}
+  .app-launch-logo{width:192px;height:192px;object-fit:contain;}
   .register-logo{display:block;width:min(72%,260px);height:auto;max-height:120px;object-fit:contain;margin:0 auto 14px;border-radius:8px;}
   .icon-btn{
     width:44px; height:44px; border:none; border-radius:12px;
@@ -319,7 +318,6 @@
 
 <div id="app-launch-screen" class="app-launch-screen" role="status" aria-live="polite">
   <img class="app-launch-logo" src="./icon-512.svg?v=4" alt="شعار تطبيق ألوان">
-  <span class="launch-caption">جارٍ فتح التطبيق…</span>
 </div>
 <div class="toast-container" id="toasts" role="status" aria-live="polite"></div>
 <div id="job-status-notice" class="job-status-notice" role="alertdialog" aria-modal="true" aria-labelledby="job-status-notice-title" aria-describedby="job-status-notice-message" hidden>
