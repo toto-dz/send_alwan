@@ -225,10 +225,10 @@
   input,select,textarea{min-height:48px;border-radius:12px;}
   textarea{min-height:86px;resize:vertical;}
   .btn{min-height:50px;border-radius:12px;}
-  .dropzone{padding:23px 14px;border-color:#a7d8c6;background:var(--card);}
+  .dropzone{padding:12px;border-color:#a7d8c6;background:var(--card);}
   .dropzone.has-file{background:var(--success-light);}
-  .file-picker-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px;}
-  .file-picker-actions .choice-button{min-height:42px;}
+  .file-picker-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .file-picker-actions .choice-button{min-height:58px;padding:12px 10px;font-size:.98rem;}
   .file-info.show{grid-template-columns:1fr;gap:8px;padding:8px 0;background:transparent;}
   .selected-file{display:grid;grid-template-columns:58px minmax(0,1fr) 44px;align-items:center;gap:10px;padding:8px;background:var(--card);}
   .selected-file .image-preview,.selected-file .file-icon{width:58px;height:58px;object-fit:cover;border-radius:9px;font-size:1.5rem;}
@@ -355,12 +355,9 @@
     <h3 class="form-section-title" id="files-heading">الملفات</h3>
     <div class="field">
     <div class="dropzone" id="dropzone">
-      <div class="dropzone-icon" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg></div>
-      <p><strong>اختر الصور أو المستندات</strong></p>
-      <small>يمكن اختيار عدة ملفات — حتى 10 ميجابايت لكل ملف</small>
       <div class="file-picker-actions">
-        <button class="choice-button" id="pick-images" type="button">🖼️ اختيار الصور من المعرض</button>
-        <button class="choice-button" id="pick-documents" type="button">📄 اختيار PDF أو Word</button>
+        <button class="choice-button" id="pick-images" type="button">اختر الصور</button>
+        <button class="choice-button" id="pick-documents" type="button">اختر الملفات</button>
       </div>
       <input id="image-input" type="file" accept="image/*" class="hidden" multiple>
       <input id="file-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden" multiple>
