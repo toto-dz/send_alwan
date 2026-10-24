@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#C50045">
-<link rel="icon" type="image/svg+xml" href="./logo-alwan.svg">
+<meta name="theme-color" content="#7c3aed">
+<link rel="icon" type="image/png" href="./alwan.png">
 <title>⚙️ لوحة إدارة الطباعة</title>
 <style>
   :root{
-    --primary:#C50045; --primary-dark:#720044;
+    --primary:#7c3aed; --primary-dark:#6d28d9;
     --success:#16a34a; --success-light:#dcfce7;
     --danger:#dc2626; --danger-light:#fee2e2;
     --warning:#f59e0b; --warning-light:#fef9c3;
@@ -26,14 +26,14 @@
     line-height:1.6;
   }
   .admin-header{
-    background:linear-gradient(135deg, #FF1744, #720044);
+    background:linear-gradient(135deg, #7c3aed, #a855f7);
     color:#fff; padding:16px 24px;
     display:flex; justify-content:space-between; align-items:center;
     flex-wrap:wrap; gap:12px;
     box-shadow:0 4px 12px rgba(124,58,237,.25);
   }
   .admin-header h1{font-size:1.15rem; display:flex; align-items:center; gap:8px;}
-  .admin-header .brand-logo{width:46px;height:46px;padding:4px;object-fit:contain;border:2px solid rgba(255,255,255,.8);border-radius:12px;background:#fff;}
+  .admin-header .brand-logo{width:104px;height:48px;padding:4px;object-fit:contain;border:2px solid rgba(255,255,255,.8);border-radius:12px;background:#fff;}
   .admin-header .badge{
     background:rgba(255,255,255,.2); padding:4px 12px;
     border-radius:20px; font-size:.8rem; font-weight:600;
@@ -311,7 +311,7 @@
 <body>
 
 <header class="admin-header">
-  <h1><img class="brand-logo" src="./logo-alwan.svg" alt="شعار ألوان"> لوحة إدارة ألوان للطباعة <span class="badge" id="liveBadge">🟢 مباشر</span></h1>
+  <h1><img class="brand-logo" src="./alwan.png" alt="شعار ألوان"> لوحة إدارة ألوان للطباعة <span class="badge" id="liveBadge">🟢 مباشر</span></h1>
   <div class="print-total" aria-live="polite"><small>مجموع أرباح الطباعة</small><strong id="stat-print-total">0 دج</strong></div>
   <div class="actions">
     <div class="notification-wrap">
