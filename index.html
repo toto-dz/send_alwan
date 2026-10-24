@@ -712,6 +712,14 @@ function updatePrice(){
   details.innerHTML=`<div>حجم الورق: <strong>${sizeName}</strong></div><div>نوع الطباعة: <strong>${colorName}</strong></div><div>نوع الورق: <strong>${paperName}</strong></div><div>الكمية المحسوبة: <strong>${quote.quantity} ${quote.imageCount?'ورقة مطبوعة':'نسخة'}</strong></div><div>سعر الوحدة: <strong>${quote.unitPrice} دج</strong></div><div>المجموع التقديري: <strong>${total} دج</strong></div>`;
   submit.disabled=false;
 }
+function syncPaperOptions(){
+  const isBw=$('opt-color').value==='bw';
+  const paperType=$('opt-type');
+  [...paperType.options].forEach(option=>{ option.disabled=isBw&&option.value!=='normal'; });
+  if(isBw&&paperType.value!=='normal') paperType.value='normal';
+}
+$('opt-color').addEventListener('change',syncPaperOptions);
+syncPaperOptions();
 ['opt-color','opt-size','opt-type','opt-copies'].forEach(id => {
   $(id).addEventListener('change', updatePrice);
   $(id).addEventListener('input', updatePrice);
