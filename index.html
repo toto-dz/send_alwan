@@ -1114,12 +1114,29 @@ setInterval(() => {
 }, 3000);
 
 /* ==================== Init ==================== */
+let appInitialized = false;
+let pageLoaded = document.readyState === 'complete';
+
+function hideLaunchScreenWhenReady(){
+  if (!appInitialized || !pageLoaded) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const launch = $('app-launch-screen');
+    if (launch) launch.hidden = true;
+  }));
+}
+
+window.addEventListener('load', () => {
+  pageLoaded = true;
+  hideLaunchScreenWhenReady();
+}, { once: true });
+
 (function init(){
   const cur = Store.getUser();
   if (cur) routeByStatus(cur);
   else show('screen-register');
+  appInitialized = true;
+  hideLaunchScreenWhenReady();
 })();
-setTimeout(()=>{const launch=$('app-launch-screen');if(launch)launch.hidden=true;},2300);
 
 /* ==================== Service Worker ==================== */
 if ('serviceWorker' in navigator){
