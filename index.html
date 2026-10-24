@@ -227,6 +227,8 @@
   .btn{min-height:50px;border-radius:12px;}
   .dropzone{padding:23px 14px;border-color:#a7d8c6;background:var(--card);}
   .dropzone.has-file{background:var(--success-light);}
+  .file-picker-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:12px;}
+  .file-picker-actions .choice-button{min-height:42px;}
   .file-info.show{grid-template-columns:1fr;gap:8px;padding:8px 0;background:transparent;}
   .selected-file{display:grid;grid-template-columns:58px minmax(0,1fr) 44px;align-items:center;gap:10px;padding:8px;background:var(--card);}
   .selected-file .image-preview,.selected-file .file-icon{width:58px;height:58px;object-fit:cover;border-radius:9px;font-size:1.5rem;}
@@ -259,8 +261,8 @@
   .install-invite .btn{grid-column:1/-1;}
   .install-help-details{grid-column:1/-1;font-size:.8rem;color:var(--muted);}
   .install-help-details summary{min-height:40px;display:flex;align-items:center;cursor:pointer;color:var(--primary-dark);font-weight:600;}
-  .job-list{display:grid;gap:10px;}
-  .job-card{padding:14px;margin:0;background:var(--card);border-radius:15px;box-shadow:none;}
+  .job-list{display:grid;gap:10px;min-width:0;}
+  .job-card{min-width:0;max-width:100%;box-sizing:border-box;padding:14px;margin:0;background:var(--card);border-radius:15px;box-shadow:none;}
   .job-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
   .job-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right;}
   .job-status{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:.75rem;font-weight:700;white-space:nowrap;}
@@ -270,7 +272,9 @@
   .job-meta{line-height:1.8;overflow-wrap:anywhere;}
   .job-details{margin-top:8px;font-size:.8rem;color:var(--muted);}
   .job-details summary{min-height:42px;display:flex;align-items:center;color:var(--primary-dark);font-weight:650;cursor:pointer;}
+  .job-details{min-width:0;overflow-wrap:anywhere;}
   .job-details ul{padding:0 18px 0 0;}
+  .job-details li{overflow-wrap:anywhere;word-break:break-word;}
   .empty-state,.loading-state,.error-state{padding:20px;text-align:center;border:1px dashed var(--border);border-radius:14px;color:var(--muted);background:var(--bg);}
   .status-box{min-height:48px;}
   @media(min-width:700px){
@@ -350,11 +354,16 @@
   <section class="form-section" aria-labelledby="files-heading">
     <h3 class="form-section-title" id="files-heading">الملفات</h3>
     <div class="field">
-    <div class="dropzone" id="dropzone" role="button" tabindex="0">
+    <div class="dropzone" id="dropzone">
       <div class="dropzone-icon" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-4 4 4-4 4 4"/><path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"/></svg></div>
-      <p><strong>اضغط لاختيار الملفات</strong></p>
-      <small>يمكن اختيار عدة صور وملفات PDF أو Word — حتى 10 ميجابايت لكل ملف</small>
-      <input id="file-input" type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden" multiple>
+      <p><strong>اختر الصور أو المستندات</strong></p>
+      <small>يمكن اختيار عدة ملفات — حتى 10 ميجابايت لكل ملف</small>
+      <div class="file-picker-actions">
+        <button class="choice-button" id="pick-images" type="button">🖼️ اختيار الصور من المعرض</button>
+        <button class="choice-button" id="pick-documents" type="button">📄 اختيار PDF أو Word</button>
+      </div>
+      <input id="image-input" type="file" accept="image/*" class="hidden" multiple>
+      <input id="file-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" class="hidden" multiple>
     </div>
     <div class="file-info" id="file-info"></div>
     <div class="field-error" id="err-file"></div>
@@ -617,6 +626,7 @@ const filePreviewUrls = new WeakMap();
 
 const dropzone = $('dropzone');
 const fileInput = $('file-input');
+const imageInput = $('image-input');
 
 function humanFileSize(bytes){
   if (bytes < 1024) return bytes + ' B';
@@ -658,14 +668,14 @@ function handleFiles(files){
   else if(!selectedFiles.length)setFieldError('file-input','err-file','اختر ملفًا مدعومًا لا يتجاوز 10 ميجابايت');
   renderSelectedFiles();
   fileInput.value='';
+  imageInput.value='';
   updatePrice();
 }
 
-dropzone.addEventListener('click', () => fileInput.click());
-dropzone.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); }
-});
+ $('pick-images').addEventListener('click',()=>imageInput.click());
+ $('pick-documents').addEventListener('click',()=>fileInput.click());
 fileInput.addEventListener('change', e => handleFiles(e.target.files));
+imageInput.addEventListener('change', e => handleFiles(e.target.files));
   $('file-info').addEventListener('click',e=>{
     const remove=e.target.closest('[data-remove-file]');
     if(!remove)return;
@@ -811,6 +821,7 @@ $('btn-submit').onclick = async () => {
     selectedFiles.forEach(file=>{const url=filePreviewUrls.get(file);if(url){URL.revokeObjectURL(url);filePreviewUrls.delete(file);}});
     selectedFiles = [];
     fileInput.value = '';
+    imageInput.value = '';
     renderSelectedFiles();
     updatePrice();
     $('opt-notes').value = '';
