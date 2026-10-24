@@ -1,10 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#059669"/>
-  <rect x="125" y="66" width="262" height="158" rx="22" fill="#fff"/>
-  <path d="M154 98h204v94H154z" fill="#d1fae5"/>
-  <rect x="80" y="187" width="352" height="200" rx="48" fill="#fff"/>
-  <path d="M147 276h218v130H147z" fill="#d1fae5"/>
-  <path d="M174 308h164M174 343h128" stroke="#047857" stroke-width="19" stroke-linecap="round"/>
-  <circle cx="373" cy="233" r="14" fill="#16a34a"/>
-  <path d="M153 387v60h206v-60" fill="#6ee7b7"/>
+  <defs>
+    <linearGradient id="brandGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF1744"/><stop offset="50%" stop-color="#C50045"/><stop offset="100%" stop-color="#720044"/></linearGradient>
+    <linearGradient id="pageGradient" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFFFFF"/><stop offset="100%" stop-color="#FFF0F5"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#brandGradient)"/>
+  <path d="M139 76h155l78 78v267H139V76Z" fill="url(#pageGradient)"/>
+  <path d="M294 76v78h78Z" fill="#FFD6E2"/>
+  <path d="M177 214h172" stroke="#A00050" stroke-width="22" stroke-linecap="round"/>
+  <path d="M177 258h96" stroke="#E84365" stroke-width="22" stroke-linecap="round"/>
+  <circle cx="187" cy="337" r="27" fill="#FF8A00"/><circle cx="256" cy="337" r="27" fill="#E60065"/><circle cx="325" cy="337" r="27" fill="#159DBA"/>
 </svg>
