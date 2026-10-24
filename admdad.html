@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#7c3aed">
+<link rel="icon" type="image/svg+xml" href="./logo-alwan.svg">
 <title>⚙️ لوحة إدارة الطباعة</title>
 <style>
   :root{
@@ -32,6 +33,7 @@
     box-shadow:0 4px 12px rgba(124,58,237,.25);
   }
   .admin-header h1{font-size:1.15rem; display:flex; align-items:center; gap:8px;}
+  .admin-header .brand-logo{width:38px;height:38px;object-fit:contain;border-radius:9px;}
   .admin-header .badge{
     background:rgba(255,255,255,.2); padding:4px 12px;
     border-radius:20px; font-size:.8rem; font-weight:600;
@@ -44,6 +46,18 @@
   .admin-header .print-total small{font-size:.72rem;opacity:.9;}
   .admin-header .print-total strong{font-size:1.45rem;font-weight:800;letter-spacing:.3px;}
   .admin-header .actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .notification-wrap{position:relative;}
+  .admin-header .notification-button{position:relative;min-width:44px;min-height:40px;font-size:1.15rem;padding:6px 12px;}
+  .notification-count{position:absolute;top:-7px;right:-7px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:.68rem;font-weight:800;line-height:19px;text-align:center;}
+  .notification-panel{position:absolute;z-index:50;top:calc(100% + 10px);right:0;width:min(340px,calc(100vw - 32px));max-height:380px;overflow:auto;padding:10px;background:var(--card);color:var(--txt);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 35px #0f172a30;}
+  .notification-panel[hidden]{display:none;}
+  .notification-heading{display:flex;justify-content:space-between;align-items:center;padding:4px 5px 9px;font-size:.9rem;font-weight:750;}
+  .notification-empty{padding:18px 8px;text-align:center;color:var(--muted);font-size:.85rem;}
+  .notification-panel .notification-item{display:block;width:100%;padding:10px;border:0!important;border-radius:9px!important;background:transparent!important;color:var(--txt)!important;text-align:right;font:inherit;cursor:pointer;}
+  .notification-panel .notification-item:hover{background:var(--bg)!important;}
+  .notification-panel .notification-item.unread{background:var(--primary-light)!important;}
+  .notification-item strong{display:block;font-size:.84rem;}
+  .notification-item small{display:block;margin-top:3px;color:var(--muted);font-size:.73rem;}
   .admin-header button{
     background:rgba(255,255,255,.15); color:#fff;
     border:1px solid rgba(255,255,255,.3);
@@ -297,9 +311,16 @@
 <body>
 
 <header class="admin-header">
-  <h1>⚙️ لوحة إدارة الطباعة <span class="badge" id="liveBadge">🟢 مباشر</span></h1>
+  <h1><img class="brand-logo" src="./logo-alwan.svg" alt="شعار ألوان"> لوحة إدارة ألوان للطباعة <span class="badge" id="liveBadge">🟢 مباشر</span></h1>
   <div class="print-total" aria-live="polite"><small>مجموع أرباح الطباعة</small><strong id="stat-print-total">0 دج</strong></div>
   <div class="actions">
+    <div class="notification-wrap">
+      <button id="notification-button" class="notification-button" type="button" aria-label="الإشعارات" aria-expanded="false" aria-controls="notification-panel">🔔<span id="notification-count" class="notification-count" hidden>0</span></button>
+      <div id="notification-panel" class="notification-panel" hidden>
+        <div class="notification-heading">الإشعارات</div>
+        <div id="notification-list" class="notification-list"></div>
+      </div>
+    </div>
     <button onclick="refreshAll()">🔄 تحديث</button>
     <button onclick="exportReport()">📊 تصدير تقرير</button>
     <button onclick="openQR()">📱 عرض QR للزبائن</button>
@@ -414,6 +435,71 @@ function toast(msg, type = 'ok', dur = 3000){
   $('toasts').appendChild(t);
   setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, dur);
 }
+
+let notificationBaselineReady=false;
+let knownUserIds=new Set();
+let knownJobIds=new Set();
+let adminNotifications=[];
+function renderNotificationBell(){
+  const unread=adminNotifications.filter(item=>!item.read).length;
+  const count=$('notification-count');
+  count.textContent=unread>99?'99+':String(unread);
+  count.hidden=unread===0;
+  const list=$('notification-list');
+  list.innerHTML=adminNotifications.length?adminNotifications.map((item,index)=>
+    `<button type="button" class="notification-item${item.read?'':' unread'}" data-notification-index="${index}"><strong>${item.type==='user'?'👤 مستخدم جديد':'🖨️ طلبية جديدة'}</strong><small>${escapeHtml(item.label)} · ${timeAgo(item.at)}</small></button>`
+  ).join(''):'<div class="notification-empty">لا توجد إشعارات جديدة</div>';
+}
+function observeAdminRecords(){
+  const users=Store.get('users');
+  const jobs=Store.get('jobs');
+  if(!notificationBaselineReady){
+    knownUserIds=new Set(users.map(item=>String(item.id)));
+    knownJobIds=new Set(jobs.map(item=>String(item.id)));
+    notificationBaselineReady=true;
+    renderNotificationBell();
+    return;
+  }
+  const added=[];
+  users.forEach(user=>{
+    const id=String(user.id);
+    if(!knownUserIds.has(id)){knownUserIds.add(id);added.push({type:'user',label:user.name||user.phone||'مستخدم جديد',at:user.createdAt||Date.now()});}
+  });
+  jobs.forEach(job=>{
+    const id=String(job.id);
+    if(!knownJobIds.has(id)){knownJobIds.add(id);added.push({type:'job',label:job.userName||job.phone||'طلب طباعة جديد',at:job.createdAt||Date.now()});}
+  });
+  if(added.length){
+    adminNotifications=[...added.reverse(),...adminNotifications].slice(0,50);
+    renderNotificationBell();
+    if(added.length===1)toast(added[0].type==='user'?'👤 تم تسجيل مستخدم جديد':'🖨️ وصلت طلبية طباعة جديدة','info',5000);
+    else toast(`🔔 وصل ${added.length} إشعارات جديدة`,'info',5000);
+  }
+}
+const notificationButton=$('notification-button');
+const notificationPanel=$('notification-panel');
+notificationButton.addEventListener('click',()=>{
+  const opening=notificationPanel.hidden;
+  notificationPanel.hidden=!opening;
+  notificationButton.setAttribute('aria-expanded',String(opening));
+  if(opening){adminNotifications.forEach(item=>item.read=true);renderNotificationBell();}
+});
+$('notification-list').addEventListener('click',event=>{
+  const item=event.target.closest('[data-notification-index]');
+  if(!item)return;
+  const notification=adminNotifications[Number(item.dataset.notificationIndex)];
+  if(!notification)return;
+  notificationPanel.hidden=true;
+  notificationButton.setAttribute('aria-expanded','false');
+  if(notification.type==='user'){setUserFilter('all');switchTab('users');}
+  else{setJobFilter('all');switchTab('jobs');}
+});
+document.addEventListener('click',event=>{
+  if(!event.target.closest('.notification-wrap')){
+    notificationPanel.hidden=true;
+    notificationButton.setAttribute('aria-expanded','false');
+  }
+});
 
 function humanSize(bytes){
   const b = Number(bytes) || 0;
@@ -945,7 +1031,7 @@ function renderAll(){
   if (bc) bc.onmessage = (e) => { if (e.data && e.data.type === 'update') renderAll(); };
   let pollTimer = null;
   async function syncCloud(){
-    try { await window.printCloud.refreshAdmin(); renderAll(); }
+    try { await window.printCloud.refreshAdmin(); observeAdminRecords(); renderAll(); }
     catch(error){ if(!window._printAdminWarned){window._printAdminWarned=true;toast('يلزم دخول المدير وإعداده في Supabase: '+error.message,'err',7000);} }
   }
   async function startPolling(){ if (!pollTimer) pollTimer = setInterval(syncCloud, 5000); }
