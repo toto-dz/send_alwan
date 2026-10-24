@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>محل ألوان للطباعة و التصميم</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="./logo-alwan.svg">
 <style>
   :root{
     --primary:#059669; --primary-dark:#047857; --primary-light:#d1fae5;
@@ -40,10 +41,7 @@
   }
   .brand{display:flex; align-items:center; gap:10px;}
   .brand-logo{
-    width:44px; height:44px; border-radius:12px;
-    background:linear-gradient(135deg, var(--primary), #7c3aed);
-    display:grid; place-items:center; color:#fff; font-size:1.4rem;
-    box-shadow:0 4px 12px var(--ring);
+    width:44px; height:44px; border-radius:12px; object-fit:contain;
   }
   .brand-text h1{font-size:1rem; font-weight:700;}
   .brand-text p{font-size:.75rem; color:var(--muted);}
@@ -205,7 +203,6 @@
   body{padding:12px 14px max(20px,env(safe-area-inset-bottom));overflow-x:hidden;}
   .app-header,.card{max-width:720px;}
   .app-header{margin-bottom:12px;}
-  .brand-logo{background:var(--primary);box-shadow:none;}
   .card{padding:clamp(16px,4vw,24px);}
   .card h2{font-size:clamp(1.1rem,4.5vw,1.3rem);}
   .card .subtitle{margin-bottom:16px;}
@@ -288,7 +285,7 @@
 
 <header class="app-header">
   <div class="brand">
-    <div class="brand-logo" aria-hidden="true"><svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v7H7zM17 11h.01"/></svg></div>
+    <img class="brand-logo" src="./logo-alwan.svg" alt="شعار ألوان">
     <div class="brand-text">
       <h1>محل ألوان للطباعة و التصميم</h1>
       <p>اطلب الطباعة والتصميم بسهولة من هاتفك</p>
