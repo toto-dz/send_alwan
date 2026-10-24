@@ -66,6 +66,7 @@
   }
   .brand-text h1{font-size:1rem; font-weight:700;}
   .brand-text p{font-size:.75rem; color:var(--muted);}
+  .header-actions{display:flex;align-items:center;gap:8px;}
   .register-logo{display:block;width:min(72%,260px);height:auto;max-height:120px;object-fit:contain;margin:0 auto 14px;border-radius:8px;}
   .icon-btn{
     width:44px; height:44px; border:none; border-radius:12px;
@@ -330,7 +331,10 @@
       <p>اطلب الطباعة والتصميم بسهولة من هاتفك</p>
     </div>
   </div>
-  <button class="icon-btn" id="theme-toggle" aria-label="تبديل الوضع الليلي">🌙</button>
+  <div class="header-actions">
+    <button class="icon-btn" id="phone-notifications" type="button" aria-label="تفعيل إشعارات الهاتف" title="تفعيل إشعارات الهاتف">🔔</button>
+    <button class="icon-btn" id="theme-toggle" aria-label="تبديل الوضع الليلي">🌙</button>
+  </div>
 </header>
 
 <!-- ===== Screen 1: Register ===== -->
@@ -552,8 +556,20 @@ function showPrintJobStatusNotice(status){
   $('job-status-notice-message').textContent=info.message;
   $('job-status-notice').hidden=false;
   playNotificationBell();
+  showPhoneNotification(info);
   if(jobStatusNoticeTimer)clearTimeout(jobStatusNoticeTimer);
   jobStatusNoticeTimer=setTimeout(hidePrintJobStatusNotice,4500);
+}
+function showPhoneNotification(info){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  navigator.serviceWorker?.ready.then(registration=>registration.showNotification(info.title,{
+    body:info.message,
+    icon:'./icon-192.svg',
+    badge:'./icon-192.svg',
+    tag:`print-status-${Date.now()}`,
+    renotify:true,
+    data:{url:'./index.html'}
+  })).catch(()=>{});
 }
 function hidePrintJobStatusNotice(){
   $('job-status-notice').hidden=true;
@@ -562,6 +578,16 @@ function hidePrintJobStatusNotice(){
 }
 $('job-status-notice-close').addEventListener('click',hidePrintJobStatusNotice);
 $('job-status-notice').addEventListener('click',event=>{if(event.target.id==='job-status-notice')hidePrintJobStatusNotice();});
+$('phone-notifications').addEventListener('click',async()=>{
+  if(!('Notification' in window)||!navigator.serviceWorker){toast('متصفحك لا يدعم إشعارات الهاتف.','err');return;}
+  if(Notification.permission==='granted'){toast('إشعارات الهاتف مفعّلة بالفعل.','ok');return;}
+  if(Notification.permission==='denied'){toast('السماح بالإشعارات مرفوض. فعّله من إعدادات الموقع في المتصفح.','err',5000);return;}
+  try{
+    const permission=await Notification.requestPermission();
+    if(permission==='granted')toast('تم تفعيل إشعارات الهاتف 🔔','ok',4000);
+    else toast('لم يتم السماح بإشعارات الهاتف. يمكنك تفعيلها من إعدادات الموقع.','wait',5000);
+  }catch(error){toast('تعذر تفعيل إشعارات الهاتف في هذا المتصفح.','err',5000);}
+});
 let jobStatusBaselineReady=false;
 const knownMyJobStatuses=new Map();
 const recentlySubmittedJobIds=new Set();
