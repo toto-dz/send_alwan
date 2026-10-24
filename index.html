@@ -178,6 +178,15 @@
   .toast.wait{background:var(--warning); color:#fff;}
   @keyframes toastIn{from{opacity:0; transform:translateY(-12px);} to{opacity:1; transform:translateY(0);}}
 
+  .job-status-notice{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:20px;background:rgba(15,23,42,.48);}
+  .job-status-notice[hidden]{display:none;}
+  .job-status-notice-card{width:min(100%,390px);padding:28px 22px 22px;border:1px solid var(--border);border-radius:20px;background:var(--card);color:var(--txt);text-align:center;box-shadow:0 24px 70px rgba(15,23,42,.25);animation:statusNoticeIn .25s ease-out;}
+  .job-status-notice-icon{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 14px;border-radius:50%;background:var(--primary-light);font-size:1.8rem;}
+  .job-status-notice-card h2{margin-bottom:8px;font-size:1.15rem;}
+  .job-status-notice-card p{color:var(--muted);font-size:.9rem;line-height:1.7;}
+  .job-status-notice-close{margin-top:18px;min-height:42px;padding:8px 22px;border:0;border-radius:11px;background:var(--primary);color:#fff;font:inherit;font-weight:700;cursor:pointer;}
+  @keyframes statusNoticeIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
   /* Status Box */
   .status-box{
     padding:14px 16px; border-radius:10px; font-size:.9rem;
@@ -304,6 +313,14 @@
 <body>
 
 <div class="toast-container" id="toasts" role="status" aria-live="polite"></div>
+<div id="job-status-notice" class="job-status-notice" role="alertdialog" aria-modal="true" aria-labelledby="job-status-notice-title" aria-describedby="job-status-notice-message" hidden>
+  <div class="job-status-notice-card">
+    <div id="job-status-notice-icon" class="job-status-notice-icon" aria-hidden="true">⏳</div>
+    <h2 id="job-status-notice-title"></h2>
+    <p id="job-status-notice-message"></p>
+    <button id="job-status-notice-close" class="job-status-notice-close" type="button">حسنًا</button>
+  </div>
+</div>
 
 <header class="app-header">
   <div class="brand">
@@ -490,6 +507,81 @@ function toast(message, type = 'ok', duration = 3500){
     el.style.opacity = '0';
     setTimeout(() => el.remove(), 300);
   }, duration);
+}
+const printJobStatusMessages={
+  pending:{icon:'⏳',title:'بانتظار قبول الإدارة',message:'تم استلام طلب الطباعة، وسيبدأ تجهيزه بعد مراجعته.'},
+  accepted:{icon:'✅',title:'تم قبول طلبك',message:'وافقت الإدارة على الطلب، ويجري تجهيزه للطباعة.'},
+  printing:{icon:'🖨️',title:'طلبك قيد الطباعة الآن',message:'بدأت طباعة طلبك. سنخبرك عندما يصبح جاهزًا للاستلام.'},
+  done:{icon:'🎉',title:'طلبك جاهز للاستلام',message:'اكتملت الطباعة. يمكنك التواصل مع المحل لاستلام طلبك.'},
+  rejected:{icon:'❌',title:'تعذر قبول طلبك',message:'تم رفض الطلب. يرجى التواصل مع الإدارة لمعرفة التفاصيل.'}
+};
+let jobStatusNoticeTimer=null;
+let notificationAudioContext=null;
+function playNotificationBell(){
+  try{
+    const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContextClass)return;
+    if(!notificationAudioContext)notificationAudioContext=new AudioContextClass();
+    const context=notificationAudioContext;
+    const play=()=>{
+      const start=context.currentTime;
+      [880,1174.66].forEach((frequency,index)=>{
+        const oscillator=context.createOscillator();
+        const gain=context.createGain();
+        const noteStart=start+index*.14;
+        oscillator.type='sine';
+        oscillator.frequency.value=frequency;
+        gain.gain.setValueAtTime(.0001,noteStart);
+        gain.gain.exponentialRampToValueAtTime(.12,noteStart+.015);
+        gain.gain.exponentialRampToValueAtTime(.0001,noteStart+.38);
+        oscillator.connect(gain);
+        gain.connect(context.destination);
+        oscillator.start(noteStart);
+        oscillator.stop(noteStart+.4);
+      });
+    };
+    if(context.state==='suspended')context.resume().then(play).catch(()=>{});
+    else play();
+  }catch(error){/* صوت الإشعار اختياري حسب دعم المتصفح */}
+}
+function showPrintJobStatusNotice(status){
+  const info=printJobStatusMessages[status];
+  if(!info)return;
+  $('job-status-notice-icon').textContent=info.icon;
+  $('job-status-notice-title').textContent=info.title;
+  $('job-status-notice-message').textContent=info.message;
+  $('job-status-notice').hidden=false;
+  playNotificationBell();
+  if(jobStatusNoticeTimer)clearTimeout(jobStatusNoticeTimer);
+  jobStatusNoticeTimer=setTimeout(hidePrintJobStatusNotice,4500);
+}
+function hidePrintJobStatusNotice(){
+  $('job-status-notice').hidden=true;
+  if(jobStatusNoticeTimer)clearTimeout(jobStatusNoticeTimer);
+  jobStatusNoticeTimer=null;
+}
+$('job-status-notice-close').addEventListener('click',hidePrintJobStatusNotice);
+$('job-status-notice').addEventListener('click',event=>{if(event.target.id==='job-status-notice')hidePrintJobStatusNotice();});
+let jobStatusBaselineReady=false;
+const knownMyJobStatuses=new Map();
+const recentlySubmittedJobIds=new Set();
+function processPrintJobStatusChanges(jobs){
+  if(!jobStatusBaselineReady){
+    jobs.forEach(job=>{knownMyJobStatuses.set(String(job.id),job.status);recentlySubmittedJobIds.delete(String(job.id));});
+    jobStatusBaselineReady=true;
+    return;
+  }
+  jobs.forEach(job=>{
+    const id=String(job.id);
+    if(!knownMyJobStatuses.has(id)){
+      knownMyJobStatuses.set(id,job.status);
+      if(!recentlySubmittedJobIds.has(id))showPrintJobStatusNotice(job.status);
+      recentlySubmittedJobIds.delete(id);
+    }else if(knownMyJobStatuses.get(id)!==job.status){
+      knownMyJobStatuses.set(id,job.status);
+      showPrintJobStatusNotice(job.status);
+    }
+  });
 }
 window.addEventListener('offline',()=>toast('لا يوجد اتصال بالإنترنت. تحقّق من الشبكة قبل إرسال الطلب.','err',5000));
 window.addEventListener('online',()=>toast('عاد الاتصال بالإنترنت.','ok',2500));
@@ -821,7 +913,8 @@ $('btn-submit').onclick = async () => {
     if(jobError)throw jobError;
     const {error:fileError}=await db.from('print_job_files').insert(uploadedFiles.map(file=>({job_id:jobId,user_id:authUser.id,...file})));
     if(fileError)throw fileError;
-    toast('تم إرسال الطلب ✅', 'ok');
+    recentlySubmittedJobIds.add(String(jobId));
+    showPrintJobStatusNotice('pending');
     btn.textContent = 'تم إرسال الطلب';
 
     // Reset
@@ -870,6 +963,7 @@ async function renderMyJobs(){
   }
   myJobsLoaded=true;
   myJobsLoading=false;
+  processPrintJobStatusChanges(myJobs);
   if (!myJobs.length){
     box.innerHTML = '<div class="empty-state">لا توجد طلبات سابقة. أرسل طلبك الأول وسيظهر هنا.</div>';
     return;
