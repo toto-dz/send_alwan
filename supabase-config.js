@@ -70,6 +70,7 @@ window.printPriceQuote = function(color,size,type,copies,files){
   if(!files?.length) return {available:false,reason:'no-files'};
   const imageCount=window.printImageCount(files);
   if(imageCount>0 && imageCount<files.length) return {available:false,reason:'mixed-files'};
+  if(imageCount===0) return {available:true,priced:false,quantity:null,imageCount:0};
 
   const copiesCount=Math.max(1,Math.min(10000,Math.floor(Number(copies)||1)));
   const quantity=imageCount ? imageCount*copiesCount : copiesCount;
@@ -89,7 +90,7 @@ window.printPriceQuote = function(color,size,type,copies,files){
   if(tierIndex<0 || prices[tierIndex]==null) return {available:false,reason:'combination-unpriced',quantity,imageCount};
   const unitPrice=Number(prices[tierIndex]);
   return {
-    available:true,quantity,imageCount,unitPrice,totalPrice:unitPrice*quantity,
+    available:true,priced:true,quantity,imageCount,unitPrice,totalPrice:unitPrice*quantity,
     quantityLabel:imageCount?'ورقة مطبوعة (صورة واحدة لكل ورقة × النسخ)':'نسخة'
   };
 };

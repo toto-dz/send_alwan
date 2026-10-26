@@ -107,14 +107,14 @@ begin
   if auth.uid() is not null and v_job.user_id <> v_customer_id then
     raise exception 'غير مخول لتسعير هذا الطلب';
   end if;
-  if v_job.pricing_quantity is not null and v_job.unit_price is not null and v_job.total_price is not null then
-    return jsonb_build_object('quantity',v_job.pricing_quantity,'unit_price',v_job.unit_price,'total_price',v_job.total_price);
-  end if;
   select count(*),count(*) filter (where f.mime_type like 'image/%' or lower(f.file_name) ~ '\.(jpg|jpeg|png)$')
   into v_file_count,v_image_count from public.print_job_files f where f.job_id=p_job_id;
-  if v_file_count=0 or (v_image_count>0 and v_image_count<>v_file_count) then
+  if v_file_count=0 or v_image_count<>v_file_count then
     update public.print_jobs set pricing_quantity=null,unit_price=null,total_price=null where id=p_job_id;
     return null;
+  end if;
+  if v_job.pricing_quantity is not null and v_job.unit_price is not null and v_job.total_price is not null then
+    return jsonb_build_object('quantity',v_job.pricing_quantity,'unit_price',v_job.unit_price,'total_price',v_job.total_price);
   end if;
   v_quantity := case when v_image_count>0 then v_image_count*v_job.copies else v_job.copies end;
   select t.unit_price into v_unit_price from public.print_price_tiers t

@@ -769,6 +769,7 @@ function getFileIcon(ext){
   return map[ext] || '📄';
 }
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function isImageFile(file){return String(file.type||'').startsWith('image/')||/\.(jpe?g|png|gif|webp)$/i.test(file.name||'');}
 
 function renderSelectedFiles(){
   const box=$('file-info');
@@ -793,6 +794,10 @@ function handleFiles(files){
     if (!CONFIG.ALLOWED_EXTENSIONS.includes(ext)){toast(`نوع الملف غير مدعوم: ${file.name}`,'err');continue;}
     if (file.size > CONFIG.MAX_FILE_SIZE){toast(`الملف أكبر من 10MB: ${file.name}`,'err');continue;}
     if(selectedFiles.some(f=>f.name===file.name&&f.size===file.size&&f.lastModified===file.lastModified))continue;
+    if(selectedFiles.length&&isImageFile(selectedFiles[0])!==isImageFile(file)){
+      toast(isImageFile(file)?'أزل ملفات PDF وWord أولًا قبل اختيار الصور.':'أزل الصور أولًا قبل اختيار ملفات PDF وWord.','err');
+      continue;
+    }
     selectedFiles.push(file);added++;
   }
   if(added)setFieldError('file-input','err-file','');
@@ -830,6 +835,12 @@ function updatePrice(){
   const quote=window.printPriceQuote($('opt-color').value,$('opt-size').value,$('opt-type').value,$('opt-copies').value,selectedFiles);
   const priceValue=$('price-value'),details=$('price-details'),submit=$('btn-submit');
   $('price-label').textContent='السعر التقديري (من جدول JavaScript):';
+  if(quote.available&&!quote.priced){
+    priceValue.textContent='يُحدّد السعر لاحقًا';
+    details.textContent='ملفات PDF وWord لا يُحسب لها سعر تلقائي.';
+    submit.disabled=false;
+    return;
+  }
   if(!quote.available){
     const messages={
       'pricing-loading':'جارٍ تحميل جدول الأسعار المعتمد…',
@@ -930,9 +941,9 @@ $('btn-submit').onclick = async () => {
       paper_size: $('opt-size').value,
       paper_type: $('opt-type').value,
       copies,
-      pricing_quantity: quote.quantity,
-      unit_price: quote.unitPrice,
-      total_price: quote.totalPrice,
+      pricing_quantity: quote.priced ? quote.quantity : null,
+      unit_price: quote.priced ? quote.unitPrice : null,
+      total_price: quote.priced ? quote.totalPrice : null,
       notes: $('opt-notes').value.trim()
     };
     const {data:{user},error:authError}=await db.auth.getUser();
